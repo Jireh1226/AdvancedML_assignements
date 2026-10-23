@@ -1,6 +1,6 @@
 # Paper 1: decisions, failures, corrections, and report review
 
-This publication log contains only the Paper 1 portions of the local Assignment 2 history. Papers 2 and 3 and their histories remain local. The Phase 3 source snapshot was committed locally as `8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533` before the new author-implementation comparison. Exporting only Paper 1 for publication does not change the recorded experiment.
+This log records Paper 1's reproduction and report revisions. The Phase 3 source snapshot was committed locally as `8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533` before the new author-implementation comparison. Exporting the saved snapshot for publication did not change the recorded experiment.
 
 ## Completion of the existing Zhang experiment
 
@@ -218,8 +218,8 @@ Compared the author-maintained [demonstration repository at commit 972e71c94442f
 
 The complete README was read, including its illustrative linear/kernel example. No linked third-party implementation was followed. No author code was copied into the submission, and no demo training was run. No notebook, training implementation, checkpoint, selected trajectory, primary plot, or diagnostic threshold was changed as a result. The comparison changes the report's explanation of source availability and limits, not the experimental evidence. It was performed with IDE assistance and remains outside the original shared chat.
 
-## Paper 1 publication scope
+## Paper 1 initial publication
 
-The user supplied `https://github.com/Jireh1226/AdvancedML_assignements.git`. After learning that it was already public and that the assignment asks for publication on submission day, the user first requested local commits only, then specifically authorised pushing material for Paper 1. The final publication tree and its reachable commit history contain Paper 1 only. Papers 2 and 3, datasets, large checkpoints, and the original mixed-paper Phase 3 commit are not pushed. Publishing this material early does not satisfy the assignment's publication-day instruction; no claim of full workflow compliance is made.
+The first upload to `https://github.com/Jireh1226/AdvancedML_assignements.git` added Paper 1 before the final assignment submission, earlier than the publication day specified in the guidelines. Datasets, large checkpoints, and the original mixed-paper Phase 3 commit were excluded from that upload.
 
 Validation for this revision includes recalculating all 99 timing measurements from 33 saved runs, checking those endpoints against the previous audit, validating notebook cell syntax and the absence of saved error outputs, comparing original artifact hashes, and compiling the report twice. The report's summary remains limited to its first two pages. No full notebook training was rerun during report revision or publication preparation.

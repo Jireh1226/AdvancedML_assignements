@@ -70,11 +70,11 @@ pdflatex -interaction=nonstopmode -halt-on-error understanding_deep_learning_req
 
 The report also requires the supplied original paper PDF and the preserved `figure1a.png` and `figure1bc.png` files.
 
-## Submission status
+## Reproduction record
 
-The submission repository is https://github.com/Jireh1226/AdvancedML_assignements, under `Assignment_2/paper_1_generalization/`. The user authorised publication of Paper 1 only. Papers 2 and 3 remain local. The repository is already public, so publishing Paper 1 before the final assignment submission does not follow the assignment's specified publication timing; publication is not presented as satisfying that requirement.
+The submission repository is https://github.com/Jireh1226/AdvancedML_assignements, under `Assignment_2/paper_1_generalization/`.
 
-Phase 3 was saved locally as commit `8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533` before the author-source comparison. That original snapshot also contains other papers and is retained only in the local reference `refs/local/assignment2-phase3`; it is not pushed. `phase3_record.json` records its timestamp and Paper 1 code hashes. The paper-only publication snapshot was exported afterwards, without pretending that its publication commit predates source inspection.
+Phase 3 was saved locally as commit `8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533` before the author-source comparison. `phase3_record.json` records its timestamp and Paper 1 code hashes. The publication snapshot was exported after that comparison.
 
 Phase 4 statically compared the released demonstration at `pluskid/fitting-random-labels` commit `972e71c94442fc99baeb5baebee8c95e5767963b`. That repository explicitly does not reproduce the original Figure 1 experiments. Its differences are recorded in the report and history. No author code was copied, no demo was run, and no training implementation or measured result was changed.
 
