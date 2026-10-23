@@ -1,6 +1,114 @@
-# Paper 1: decisions, failures, corrections, and report review
+# Reproduction decisions, failures, and corrections
 
-This log records Paper 1's reproduction and report revisions. The Phase 3 source snapshot was committed locally as `8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533` before the new author-implementation comparison. Exporting the saved snapshot for publication did not change the recorded experiment.
+## Scope and provenance
+
+- Required targets: Keskar et al. Figure 3, F1/C1/C2 only; Higgins et al. Figure 7A/B only. No extra paper figures or benchmark suites.
+- Source material: the supplied assignment, paper PDFs, and local lecture PDFs. No online answers, author implementations, or reproduction repositories are consulted. Network access is limited to dataset files, the user's Jarvis server, and artifact transfer.
+- The already-running Zhang et al. 36-experiment batch remains unchanged.
+- The assignment requires a shareable chat-interface interaction and separate reports. Work performed through this coding assistant must not be represented as having happened exclusively in the online ChatGPT conversation.
+- Notebooks contain executable reproduction code and completed outputs, not tutorials, provisional failures, or fabricated measurements. This file records assumptions and limitations that still belong in the reports.
+
+## Paper 2: On Large-Batch Training for Deep Learning
+
+### Paper-specified settings
+
+- F1: MNIST, five 512-unit batch-normalized ReLU hidden layers and ten outputs.
+- C1: CIFAR-10, two 64-filter 5x5 stride-2 convolution/max-pool stages, dense 384/192, batch normalization and 0.5 retention dropout in hidden dense layers.
+- C2: CIFAR-10, VGG-style convolution groups 64x2, 128x2, 256x3, 512x3, 512x3, pooling between groups, a 512-unit hidden dense layer and ten outputs. The Appendix B.4 reference to C3 is interpreted as a naming typo within the C2/C4 section.
+- Adam; small batch 256; large batch 10% of the training set: 6,000 for MNIST and 5,000 for CIFAR-10.
+- Mean cross entropy and accuracy along theta(alpha) = (1-alpha)*theta_SB + alpha*theta_LB, alpha in [-1, 2]. Alpha 0 is SB and alpha 1 is LB.
+
+### Explicit implementation choices
+
+- One prespecified seed, 42, and matched initial weights for each SB/LB pair. The paper reports five trials and selects a pair for Figure 3; this reproduction does not estimate between-seed variability or search seeds for an attractive plot.
+- Decode pixels to float32 in [0,1]; retain MNIST 28x28 and CIFAR-10 32x32. No centering, per-image standardization, augmentation, or weight decay.
+- Xavier-uniform weights, zero biases, BN affine scale one/shift zero, epsilon 1e-5 and momentum 0.1. BN is applied to hidden layers, not output logits. C1 convolution/pooling padding and pooling strides require an explicit choice because the paper does not fully specify them.
+- Adam learning rate 0.001, betas (0.9, 0.999), epsilon 1e-8, no learning-rate schedule. Evaluate every five epochs; stop after at least 100 epochs when full-training cross entropy has not improved by 0.0001 for 30 epochs, provided training accuracy is at least 99% and cross entropy is below 0.1. A 300-epoch safety cap is an explicit departure from the paper's unbounded convergence budget; capped runs must not be called converged automatically.
+- C1 uses convolution padding 2 and 3x3 max pooling with stride 2/padding 1; these unspecified padding choices yield a final 64x2x2 feature map. No change is made simply to match published accuracy.
+- The interpolation grid contains 61 evenly spaced alpha values, including exact alpha 0 and 1. BN recalibration uses the whole training split in fixed 512-example batches, with batch-size-weighted running-statistic updates. This is an explicitly chosen calibration convention, not a claim about the authors' unreported handling.
+- Interpolate trainable parameters, not negative/extrapolated running variances. Recompute BN statistics from training data only at each interpolation point; disable dropout for loss/accuracy evaluation.
+
+## Paper 3: beta-VAE
+
+### Paper-specified settings
+
+- Full dSprites dataset: 737,280 binary 64x64 images, three shapes, six scales, 40 rotations, and 32x32 positions.
+- Appendix Table 1 uses a fully connected model for 2D shapes, not the convolutional models used for other datasets: encoder 1200/1200 ReLU, ten Gaussian latents, decoder 1200/1200/1200 with tanh hidden activations and a Bernoulli output.
+- Adagrad learning rate 0.01; beta = 4 versus beta = 1; same architecture in both conditions.
+- Loss sums Bernoulli negative log likelihood over pixels and Gaussian KL over latents, then averages over examples. Averaging the reconstruction over pixels alone would incorrectly change the effective beta.
+- Figure 7 averages inferred latent means over nuisance factors, orders latent columns by learned posterior variance, and traverses one coordinate from +3 to -3 while holding other coordinates at a reference image's posterior means.
+
+### Explicit implementation choices
+
+- One prespecified seed per beta, matched initial weights, identical data order and training budget. This supports a qualitative comparison, not a claim of robustness across seeds.
+- Bernoulli output is represented by logits and a sigmoid, not an invalid tanh-valued probability. Hidden decoder activations remain tanh.
+- Use all images for unsupervised training; factors are used only afterward for the required analysis, not as training labels.
+- Batch size 256, 100 full epochs (288,000 updates per beta), Xavier-uniform weights and zero biases, Adagrad initial accumulator 0.1 and epsilon 1e-10. No annealing, clipping, extra regularizers, or learning-rate schedule. These unspecified details are our choices. No model or seed is selected by matching the published picture.
+- Show all ten latent coordinates, ordered by mean posterior variance across the entire dataset, rather than hiding unused coordinates. Use the same prespecified centered oval (shape index 1, scale 3, rotation 0, positions 16/16) for both models' traversals at +3, +1.5, 0, -1.5 and -3.
+
+## Lecture-based parameter audit
+
+The user requested lecture notes as the fallback for settings absent from the papers. Reviewed the original local lecture PDFs before starting either new full experiment. Page numbers below are one-based PDF pages. The audit does not change the papers' specified settings, and it does not claim that theoretical bounds uniquely determine numerical neural-network hyperparameters.
+
+- `Lecture_61.pdf`, pp. 23–24, gives Adam's first/second moments, bias correction, and epsilon-stabilized update. The notebook uses that algorithm. The slides do not supply numerical learning rate, moment coefficients, or epsilon; 0.001, (0.9, 0.999), and 1e-8 remain explicit conventional fallbacks, not recovered author settings. Nothing in the notes justifies switching the VAE from the paper's Adagrad to Adam.
+- `Lecture_4.pdf`, pp. 28–37, relates a fixed gradient-descent step to the smoothness constant and derives a convex optimality-gap bound. The network's global smoothness constant, distance to an optimum, and convexity assumptions are unavailable here. Consequently neither an exact Adam learning rate nor a required epoch count can honestly be calculated by plugging these networks into that bound. The train-only stopping rule and safety cap remain empirical choices; hitting the cap is not a proof of convergence.
+- `Lecture_6.pdf`, pp. 38–42, defines the minibatch objective as an average and gives the idealized variance reduction proportional to 1/B. This supports averaging over examples, not summing over the batch. With the paper's sizes, the ideal independent-example LB/SB variance ratios are 256/6000 = 0.04267 for MNIST and 256/5000 = 0.0512 for CIFAR-10. These are theoretical illustrations, not measured gradient variances. The no-replacement correction gives about 0.03856 and 0.04632 at a fixed parameter vector under independent per-example gradients; BN and dropout prevent treating those numbers as exact for these models.
+- `Lecture_6.pdf`, p. 50, explicitly identifies batch normalization and dropout as sources of gradient inconsistency. Accordingly the large batch remains one genuine forward/backward batch; accumulating small-batch gradients would not reproduce large-batch BN. Evaluation disables dropout and uses train-data-only BN calibration for interpolation. The calibration batch size 512 and the handling of interpolated BN statistics are disclosed implementation choices, not prescribed by the notes.
+- Epoch/update calculation: MNIST SB has ceil(60000/256) = 235 updates per epoch, versus 10 LB updates; CIFAR-10 SB has ceil(50000/256) = 196, versus 10 LB updates. Thus 100–300 epochs correspond to 23,500–70,500 F1 SB updates, 19,600–58,800 C1/C2 SB updates, and 1,000–3,000 LB updates. This is why epoch count alone must not be described as equal optimization effort. For dSprites, 737280/256 = 2880 updates per epoch, or 288,000 at 100 epochs for each beta. The notes explain the compute/variance tradeoff but do not identify an optimal VAE batch size or training budget.
+- `hs_wednesday_Sep_23.pdf`, p. 26, decomposes the ELBO into expected log likelihood minus prior KL and approximates the expectation by averaging latent samples. Combining this with the paper's Bernoulli image model gives a sum of 4096 pixel log likelihoods and a sum of ten coordinate KL terms, followed by an average over examples. We use one reparameterized latent sample per image. Dividing only reconstruction by 4096 would multiply the effective KL weighting by 4096. The standard-normal prior makes traversal values literal prior-standard-deviation units, not arbitrary image-noise variances.
+- Initialization: the supplied optimization lectures discuss dependence on initialization but do not prescribe a Xavier/He distribution for these architectures. Retained the tested, explicitly declared Xavier fallback, rather than attributing an absent recipe to the lecturer. Its variance is 2/(fan_in + fan_out); equating this to the variance of Uniform[-a,a], a^2/3, gives a = sqrt(6/(fan_in + fan_out)). For F1's 784-to-512 layer, a = 0.06804; for a 512-to-512 layer, 0.07655; for the VAE's 4096-to-1200 layer, 0.03366. These calculations document the chosen distribution, not the authors' unknown random draws. Seed 42 makes our choice reproducible; it is not evidence that the authors used 42.
+- The lectures do not supply the VAE Adagrad accumulator/epsilon, BN numerical defaults, unspecified padding, or a required interpolation-grid density. Those remain labeled fallbacks. For the grid, (2 - (-1))/(61 - 1) = 0.05, retaining both endpoints alpha=0 and alpha=1 exactly. No hyperparameters were changed merely to make a figure resemble the paper.
+
+## Execution record
+
+- Initial paper review completed; datasets and code are being prepared. No completed results for the two new reproductions are claimed yet.
+- Official MNIST data and the dSprites archive were downloaded without reading repository implementation files. dSprites archive SHA256: `857dc001287e8efa226e0025fac6b29e5745c621b380b0d3363e4e33f4e28fa2`; dimensions and all factor cardinalities were checked.
+- CPU checks passed for every classifier: model dimensions, matched SB/LB initial weights, exact epoch-checkpoint continuation in a fresh namespace, read-only completed-result reuse, and finite interpolation on synthetic data. VAE loss-reduction and exact-resume checks also passed. These are software tests, not reproduction results.
+- A memory-saving C2 activation-checkpoint implementation was tested. Recomputed forwards temporarily use BN momentum zero and restore BN counters, avoiding the usual error of double-updating BN statistics. CPU gradients and all BN buffers matched ordinary execution exactly.
+- Actual GPU batch-size checks passed: F1 batch 6,000 used about 0.18 GiB; C1 batch 5,000 about 3.54 GiB; C2 batch 5,000 with activation checkpointing about 11.97 GiB. Large batches are genuine forward/backward batches, not gradient accumulation over small BN batches.
+- VAE warning: the four-example synthetic fixture produced extremely large KL values despite finite losses. Before full training, tested real dSprites batches of 256 for 500 updates. The original beta=4 objective recovered from an early spike and reached reconstruction 233.79 and KL 7.50 nats/image on the pilot minibatch.
+- Rejected change: dividing the entire VAE objective by 4,096 preserves the nominal beta mathematically but changes Adagrad's dynamics with a nonzero initial accumulator. In the matched 500-update pilot, reconstruction remained 2,828.94 nats instead of 233.79. This change was not installed; the original summed-pixel objective is retained. Pilot images and checkpoints are not submitted as final results.
+- Beta=1 also passed the real-data 500-update stability pilot: reconstruction 214.74 and KL 17.32 nats/image at the last pilot minibatch. Early transient spikes are recorded rather than hidden. Both full runs retain the same specified optimizer and objective.
+- Reverted the memory-saving C2 implementation before full execution: the genuine 5,000-example batch also fits ordinary FP32 execution (23.19 GiB, about 1.51 seconds for the first measured step versus 1.74 with recomputation). Removed unused activation-checkpoint code to keep the notebook simpler and avoid paying an unnecessary recomputation cost. This is a computational change, not a batch-size change.
+- Inspected both figure layouts using visibly watermarked synthetic fixtures; axes, image placement, exports, and the two beta panels render correctly. These fixtures stay outside the deliverable notebooks and result folders.
+- Lecture audit completed before the new full runs. No numerical setting was contradicted by a lecture-provided value; retained the tested configurations and documented the theoretical limits above. The new-paper queue waits for an unoccupied GPU, rather than interrupting Zhang training or another user's GPU process.
+- Portability correction before full execution: dataset loaders can obtain missing MNIST/CIFAR files through torchvision's dataset downloader, and the VAE can read the original dSprites archive if its expanded cache is absent. This avoids requiring a hidden preparation script or copying a redundant 3 GB image cache onto the nearly full laptop. These changes do not alter any training examples or numerical settings.
+- The archive-only dSprites loader passed a comparison against the expanded cache, including factor ordering and 100 fixed sampled images. MNIST/CIFAR full split-size checks passed. Copied the original dSprites archive, provenance file, and MNIST data back to the assignment directory; the copied archive checksum matches.
+- Scheduling revision after observing AlexNet training: GPU 0 used only about 12–14% compute and 1.5 GiB, exclusively by our verified Zhang kernel. Rather than leave this spare capacity unused for another long queue, allowed the new job to share GPU 0 only with that exact owned process, with over 33,000 MiB initially free. The largest new batch had already been measured at 23.19 GiB, leaving substantial headroom. GPU 1's other process is not touched. This changes scheduling, not data, seeds, optimizer settings, precision, or stopping criteria; first-paper training is not stopped or edited. Runtime measurements under concurrent execution are not architecture speed benchmarks.
+- During full C2 LB execution, combined device usage reported by `nvidia-smi` reached 42,441 MiB out of 49,140 MiB, higher than the pilot's peak tensor-allocation measurement. These are different memory measures; the pilot number is not the total process/device footprint. The full 5,000-image batches and the first-paper job both continued successfully within device capacity. No mixed precision or gradient-accumulation substitution was introduced.
+
+## Completed large-batch results
+
+All six models completed their specified training-only plateau rule: F1 SB/LB at 100/100 epochs, C1 at 165/300, and C2 at 165/180. C1 LB met the plateau rule on the final allowed epoch; it is not an experiment with an unbounded budget. Full training and test splits were evaluated at all 61 interpolation points for each network. The executed notebook passes nbformat validation, matches the validated code, and contains no error outputs or intermediate training logs.
+
+Figure 3 endpoint values below use the same train-only BN recalibration as the plotted curves. They therefore differ slightly from the raw running-BN metrics saved at the end of training.
+
+| Network | SB test accuracy | LB test accuracy | SB minus LB |
+| --- | ---: | ---: | ---: |
+| F1 | 98.61% | 98.20% | 0.41 percentage points |
+| C1 | 71.00% | 66.78% | 4.22 percentage points |
+| C2 | 86.07% | 81.33% | 4.74 percentage points |
+
+The completed curves were visually compared with the supplied Figure 3. They show the intended qualitative pattern: a broad low-training-loss region around the small-batch endpoint and greater sensitivity around/beyond the large-batch endpoint. All three SB endpoints have better test accuracy than their LB counterpart. This is not an exact numerical reproduction: the paper's Table 2 averages over five trials and reports F1 98.03%/97.81%, C1 80.04%/77.26%, and C2 89.24%/87.26% for SB/LB. In particular, our C1 and C2 accuracies are lower, and extrapolation heights/transition locations differ. One seed, unspecified optimizer/initialization/padding settings, finite stopping, and our explicit BN calibration convention limit comparison. These differences were not hidden or corrected by selecting a favorable seed, test epoch, or plot scale.
+
+## Completed beta-VAE results
+
+Both models completed 100 full epochs, exactly 288,000 optimizer updates each, on all 737,280 images. Their initial model hashes match. The full-data analyses have the expected 32x32 position, 3x6 scale, 3x40 rotation, and 10x5x64x64 traversal dimensions, all finite and correctly ordered by posterior variance. The executed notebook validates with no errors or intermediate training logs.
+
+| Beta | Last-epoch stochastic reconstruction | Last-epoch KL | Posterior-mean reconstruction | Full-data posterior KL |
+| --- | ---: | ---: | ---: | ---: |
+| 4 | 54.076 | 11.889 | 45.145 | 11.900 |
+| 1 | 36.091 | 17.603 | 33.456 | 17.606 |
+
+All numbers are nats per image. Posterior-mean reconstruction decodes the inferred mean without sampling; it is not the expected reconstruction term of the stochastic ELBO. The final epoch's online losses also average changing parameters, whereas the posterior analysis uses one fixed final model.
+
+Visual comparison with the supplied Figure 7A/B reproduces the main qualitative distinction. At beta=4, z10/z3 chiefly encode horizontal/vertical position, z7 principally scale, and z4/z9 rotation-related variation. Beta=1 has mixed spatial response maps and traversals that change several image properties together. Both runs have five approximately prior-like unused coordinates; all ten are shown rather than collapsing the unused ones into one column. Latent identities and signs need not match the paper. The learned variance magnitudes and exact reconstructions do not match numerically, and some beta=4 traversals still change shape: this is qualitative evidence, not proof of perfect disentanglement or a multi-seed replication. Training continued improving within the fixed 100-epoch budget, so the budget is not claimed to establish convergence.
+
+- Presentation correction: change variance annotations from three decimal places to three significant digits. Values around 0.00037 otherwise displayed misleadingly as 0.000. Regenerate only from the completed saved runs; no training parameters, checkpoints, or analysis values are changed.
+- Verified all eight classifier/VAE checkpoint files are byte-identical before and after the presentation-only regeneration. Both executed notebooks still match the validated sources and use their completed cached experiments, not synthetic or newly selected runs.
+- Portability correction found during delivery: cached summaries originally retained absolute Jarvis result paths, and the environment guard also rejected read-only inspection on another computer. Completed-result loading now resolves paths against the notebook's current result directory, retains the original training-environment record, and permits read-only reuse with a different environment. Scientific settings still must match exactly; incomplete training still cannot resume in a different environment. This is a cache-loading correction, not a new experiment or a change to learned parameters.
+- Cache validation passed: relocated all eight actual saved runs through temporary directory aliases and reused their results/analyses on CPU without training or changing any experiment file. Changed batch size was correctly rejected; incomplete experiments with changed recorded environments were correctly rejected. Re-ran exact-resume checks for all three classifiers and beta=4, plus matched-initialization checks for beta=4 versus beta=1, successfully. Regenerating the final notebooks with this fix again left all eight model checkpoint hashes unchanged.
+- Delivered both finished notebooks, reference/produced figures, numerical analyses, all eight checkpoints, and the needed dataset files to the local assignment folder. Verified 60 transferred files against Jarvis with SHA256; no differences. Temporary pilots, synthetic fixtures, and old presentation versions are not included in the delivered result folders. The pre-existing first-paper training continues unchanged while its remaining runs finish.
 
 ## Completion of the existing Zhang experiment
 
@@ -123,6 +231,59 @@ The final few mistakes strongly affect exact-zero timing, particularly MLP's cle
 
 All eleven diagnostic AlexNet checkpoints were independently reloaded and their train/test metrics reproduced exactly. Their exponential schedules and first-fit timestamps were checked. Exact interrupted-versus-uninterrupted training, cached reuse, and rejection of incompatible learning-rate settings passed before the sweep. All original 145 artifacts, previous continuation checkpoints, and the previously delivered notebooks/plots were hash-verified unchanged. All three notebooks validate, contain executed cells, and contain no error outputs. No unfinished diagnostic output was added to a submission notebook.
 
+## Independent audit of the other two paper figures
+
+### Locations
+
+- Large-batch: `on_large_batch_training_for_deep_learning.ipynb`; saved plot `results_large_batch/seed42_v1/figure3_f1_c1_c2.png`.
+- beta-VAE: `beta_vae_learning_basic_visual_concepts.ipynb`; saved plot `results_beta_vae/seed42_v1/figure7ab.png`.
+- Both executed notebooks and saved figures were opened in VS Code for comparison with the supplied reference figures.
+
+### Large-batch Figure 3: F1, C1, C2
+
+- Checked the supplied Appendix B against the layers, actual SB/LB batch sizes, Adam objective, dropout/BN treatment, and matched initializations. Padding, initialization, stopping, and BN calibration remain disclosed choices where the paper is incomplete; this does not establish that these choices match the authors'.
+- Reloaded all six checkpoints and recomputed interpolation at alpha = 0, 1, and 1.2 for all three architectures. All saved training/test losses and accuracies matched exactly. At alpha 0 and 1, trainable parameters exactly matched the endpoint checkpoint tensors. All six runs met the recorded training-only plateau rule.
+- Recalibrating BN with training batches of 256 rather than 512 changed test accuracy by at most 0.02 percentage points and cross-entropy by at most 0.00959 across those nine points. This specific choice cannot explain C1's large accuracy gap; the test does not exclude every possible BN convention.
+- Numeric curve shapes, extrapolation losses, and CIFAR test accuracies differ from the paper. Our SB/LB accuracies are F1 98.61%/98.20%, C1 71.00%/66.78%, and C2 86.07%/81.33%; the paper reports five-trial table averages of 98.03%/97.81%, 80.04%/77.26%, and 89.24%/87.26%, respectively. Broad SB behavior and greater sensitivity near/beyond LB are qualitatively present, not exact matches.
+- The cause of the remaining performance gaps is unresolved. A single seed and unreported implementation/training choices are limitations, not proven causes. No checkpoint or plotted value was changed merely to hide the mismatch.
+
+### beta-VAE Figure 7A/B
+
+- Verified loss units independently: zero logits give 4096*log(2) reconstruction nats per image; ten latent means of one with unit variance give five KL nats. The loss sums Bernoulli reconstruction over pixels and KL over latent coordinates, then averages examples, with beta weighting KL. No erroneous pixel averaging or extra beta normalization was found.
+- Re-encoded all 737,280 images for each model. Explicit factor-class grouping, independent of the notebook's reshape/axis-averaging implementation, reproduced position, scale, rotation, posterior variance, and KL aggregates within floating-point tolerance.
+- Recomputed every single-coordinate traversal, holding the other nine coordinates at the reference image's posterior mean. Maximum pixel discrepancies were 1.67e-6 for beta 4 and 2.29e-6 for beta 1. Columns are correctly ordered by posterior variance, not standard deviation.
+- Both saved models have five active and five approximately prior-like coordinates; all ten are shown. Latent signs and identities need not match the paper. Beta 4 shows more separated positional/scale factors than beta 1, but variance magnitudes and some shape-changing traversals differ. This is a qualitative single-seed reproduction, not proof of complete disentanglement or an exact numerical match.
+- No grouping, traversal, or objective-scaling bug was found to justify altering these results. All eight other-paper checkpoint hashes are unchanged. The figures remain available in their executed notebooks and PNG files; differences alone were not treated as a reason to manipulate them.
+
+## Paper 2 F1 accuracy rebound: controlled BN comparison
+
+The user requested leaving Papers 1 and 3 untouched and investigating the upward red tail in Paper 2. Red represents accuracy, not cross-entropy. Alpha is a weight-path coordinate, not training time: weights are `(1-alpha)*SB + alpha*LB`; alpha beyond 1 extrapolates past the large-batch model. Classification accuracy is not required to decrease monotonically along this path.
+
+Used the two existing F1 checkpoints without retraining. Kept all trainable parameters identical at each of the 61 alpha values, changing only the batch-normalization running statistics. Evaluated all 60,000 training and 10,000 test examples. The original training-data recalibration reproduced all 61 saved train/test points exactly.
+
+| BN treatment | Test accuracy at alpha 1.3 | Test accuracy at alpha 2 | Interpretation |
+| --- | ---: | ---: | --- |
+| Recalibration from training images, current notebook | 2.20% | 27.91% | Reproduces the observed rebound |
+| Fixed small-batch endpoint statistics | 10.10% | 11.12% | Largely collapses to predicting digit 3; not a faithful replacement |
+| Fixed large-batch endpoint statistics | 3.26% | 18.04% | Rebound remains without recalibration |
+| Affine interpolation/extrapolation of stored means and variances | Invalid | Invalid | Negative variances; no accuracy assigned |
+
+Thus BN handling materially changes the curve but recalibration alone does not explain the rebound. With fixed LB statistics, accuracy still recovers while test cross-entropy rises from 66.83 at alpha 1.3 to 56,913.09 at alpha 2: improved accuracy need not mean improved probabilistic predictions, because confidently wrong examples can dominate cross-entropy. This control does not reproduce the paper either.
+
+The classwise predictions confirm a real change, not a plotting error. Under the current recalibration protocol, at alpha 2 the test accuracies for digits 0, 3, 4, and 9 are approximately 69.8%, 81.4%, 55.8%, and 56.0%, respectively; several other digits remain almost entirely wrong. That partial recovery produces the aggregate upward red tail. The network is still a poor classifier, not a recovered high-accuracy endpoint.
+
+The proposed direct BN-buffer interpolation cannot cover the full displayed range for these checkpoints: every sampled alpha from 1.05 through 2 contains negative running variances; at alpha 1.3 all 2,560 BN variance entries are negative. These points were rejected, not clamped, silently converted into standard deviations, or plotted as finite results. Fixed-SB and fixed-LB statistics are diagnostic controls only: each preserves its own full endpoint model but substitutes the wrong BN buffers at the opposite endpoint, so neither is automatically a valid replacement for the complete two-endpoint curve.
+
+No primary notebook, checkpoint, or submitted figure was changed. In particular, Papers 1 and 3 remain byte-identical. All three notebook hashes, the protected figures, and all eight classifier/VAE checkpoint hashes passed before/after checks. The exact reason our extrapolated F1 behavior differs from the authors' selected pair remains unresolved; the experiment does not establish that initialization, stopping, or BN convention alone is responsible. No visual-match-driven replacement was selected.
+
+The evaluation loop took about 20 seconds on GPU 0, excluding environment/data setup and file transfer. Diagnostic artifacts are in `results_large_batch/audit_f1_bn/`: `curves.json`, `audit_metadata.json`, `bn_comparison.png`, and `diagnostic.py`. These are separate from the submitted Figure 3 results.
+
+## Local folder reorganisation
+
+Grouped the original papers, executed notebooks, reports, figures, checkpoints, and analyses under `paper_1_generalization/`, `paper_2_large_batch/`, and `paper_3_beta_vae/`. The earlier clean-baseline notebook and its results/log are retained under `paper_1_generalization/archive/`, separate from the full Figure 1 reproduction. The assignment PDF, one shared `data/` directory, and this combined history remain at the assignment root; `README.md` gives the current file locations.
+
+Only notebook path discovery and the standalone Paper 2 diagnostic's file locations were adjusted. Experimental settings, model/training code, execution counts, cell outputs, figures, checkpoints, and numerical results were preserved. The report source and PDF were moved without content changes. Historical absolute paths and hash records were not rewritten: they describe the original run environment and the files as they existed at the time. Jarvis's run directory was not reorganised, and no training was started.
+
 ## Paper 1 report: critical review and external-review comparison
 
 Expanded the reproduction section to explain the distinction between completing a baseline, executing all scheduled runs, and actually satisfying the fitting criterion. It now explains why taking 64 epochs from panel (a) was not a convergence guarantee for every architecture, how the decaying learning rate motivated the documented continuation, and how the old final-checkpoint plotting gate could hide an earlier valid first-fit time. These are explanations of the recorded workflow and corrections, not new experiments or newly established causes of every mismatch.
@@ -224,78 +385,6 @@ The first upload to `https://github.com/Jireh1226/AdvancedML_assignements.git` a
 
 Validation for this revision includes recalculating all 99 timing measurements from 33 saved runs, checking those endpoints against the previous audit, validating notebook cell syntax and the absence of saved error outputs, comparing original artifact hashes, and compiling the report twice. The report's summary remains limited to its first two pages. No full notebook training was rerun during report revision or publication preparation.
 
-## Paper 1 second review: stale PDF correction
-
-The second review correctly identified that the distributed PDF still contained the earlier pending-Phase-4 paragraph, even though the adjacent local source contained the completed comparison. Both the assignment-folder PDF and repository PDF had SHA-256 `c83318692c834f4616b63f7eb7d6c03f440e135ac5a2de5c8496a8a53fce2524`. The previous statement that the final report had been compiled and synchronized was inaccurate for the distributed artifact.
-
-Rebuilt the exact current source twice in a fresh output directory, without editing or publishing the LaTeX source. Source SHA-256: `4dac7773a4eb4359e96a10f63ba169db55fc449d6b6084255794441096328fc0`. Corrected PDF SHA-256: `fb8ac17c1f626da849ec691e35b091885aa97a7a8c8269ab82013cd0c12a3bfd`. The report remains ten pages.
-
-Validation now checks the PDF itself rather than inferring its contents from the source: page 7 contains the completed Phase 4 section and commits `8b28d5b` and `972e71c`; page 8 contains the updated interaction record; page 10 contains the third bibliography entry for the released demonstration. The outdated claims that the comparison remains pending and that no Phase 3 commit exists are absent. The rendered Phase 4 page was also inspected. The build has no overfull boxes or unresolved references; the shell-escape-disabled notice concerns an unused image-conversion capability.
-
-Synchronized the local Paper 1 README with the repository's PDF-only version by removing the LaTeX-source description and report-build section. The repository's Assignment 2 README already has no report-source link, so it requires no change.
-
-No notebook, checkpoint, original plot, diagnostic measurement, or other paper report was changed. The first public export was created after author-source inspection; tagging that export would not make it the original pre-inspection Phase 3 commit. The original mixed-paper commit remains separately identified in the provenance record. A visibility change would restrict future access, not undo earlier publication.
-
-On 22 October 2026, the repository was changed to private at the user's request and GitHub's API confirmed private visibility. This limits further public access; the earlier-publication disclosure is retained.
-
-
-## Paper 2: On Large-Batch Training for Deep Learning
-
-### Paper-specified settings
-
-- F1: MNIST, five 512-unit batch-normalized ReLU hidden layers and ten outputs.
-- C1: CIFAR-10, two 64-filter 5x5 stride-2 convolution/max-pool stages, dense 384/192, batch normalization and 0.5 retention dropout in hidden dense layers.
-- C2: CIFAR-10, VGG-style convolution groups 64x2, 128x2, 256x3, 512x3, 512x3, pooling between groups, a 512-unit hidden dense layer and ten outputs. The Appendix B.4 reference to C3 is interpreted as a naming typo within the C2/C4 section.
-- Adam; small batch 256; large batch 10% of the training set: 6,000 for MNIST and 5,000 for CIFAR-10.
-- Mean cross entropy and accuracy along theta(alpha) = (1-alpha)*theta_SB + alpha*theta_LB, alpha in [-1, 2]. Alpha 0 is SB and alpha 1 is LB.
-
-### Explicit implementation choices
-
-- One prespecified seed, 42, and matched initial weights for each SB/LB pair. The paper reports five trials and selects a pair for Figure 3; this reproduction does not estimate between-seed variability or search seeds for an attractive plot.
-- Decode pixels to float32 in [0,1]; retain MNIST 28x28 and CIFAR-10 32x32. No centering, per-image standardization, augmentation, or weight decay.
-- Xavier-uniform weights, zero biases, BN affine scale one/shift zero, epsilon 1e-5 and momentum 0.1. BN is applied to hidden layers, not output logits. C1 convolution/pooling padding and pooling strides require an explicit choice because the paper does not fully specify them.
-- Adam learning rate 0.001, betas (0.9, 0.999), epsilon 1e-8, no learning-rate schedule. Evaluate every five epochs; stop after at least 100 epochs when full-training cross entropy has not improved by 0.0001 for 30 epochs, provided training accuracy is at least 99% and cross entropy is below 0.1. A 300-epoch safety cap is an explicit departure from the paper's unbounded convergence budget; capped runs must not be called converged automatically.
-- C1 uses convolution padding 2 and 3x3 max pooling with stride 2/padding 1; these unspecified padding choices yield a final 64x2x2 feature map. No change is made simply to match published accuracy.
-- The interpolation grid contains 61 evenly spaced alpha values, including exact alpha 0 and 1. BN recalibration uses the whole training split in fixed 512-example batches, with batch-size-weighted running-statistic updates. This is an explicitly chosen calibration convention, not a claim about the authors' unreported handling.
-- Interpolate trainable parameters, not negative/extrapolated running variances. Recompute BN statistics from training data only at each interpolation point; disable dropout for loss/accuracy evaluation.
-
-## Completed large-batch results
-
-All six models completed their specified training-only plateau rule: F1 SB/LB at 100/100 epochs, C1 at 165/300, and C2 at 165/180. C1 LB met the plateau rule on the final allowed epoch; it is not an experiment with an unbounded budget. Full training and test splits were evaluated at all 61 interpolation points for each network. The executed notebook passes nbformat validation, matches the validated code, and contains no error outputs or intermediate training logs.
-
-Figure 3 endpoint values below use the same train-only BN recalibration as the plotted curves. They therefore differ slightly from the raw running-BN metrics saved at the end of training.
-
-| Network | SB test accuracy | LB test accuracy | SB minus LB |
-| --- | ---: | ---: | ---: |
-| F1 | 98.61% | 98.20% | 0.41 percentage points |
-| C1 | 71.00% | 66.78% | 4.22 percentage points |
-| C2 | 86.07% | 81.33% | 4.74 percentage points |
-
-The completed curves were visually compared with the supplied Figure 3. They show the intended qualitative pattern: a broad low-training-loss region around the small-batch endpoint and greater sensitivity around/beyond the large-batch endpoint. All three SB endpoints have better test accuracy than their LB counterpart. This is not an exact numerical reproduction: the paper's Table 2 averages over five trials and reports F1 98.03%/97.81%, C1 80.04%/77.26%, and C2 89.24%/87.26% for SB/LB. In particular, our C1 and C2 accuracies are lower, and extrapolation heights/transition locations differ. One seed, unspecified optimizer/initialization/padding settings, finite stopping, and our explicit BN calibration convention limit comparison. These differences were not hidden or corrected by selecting a favorable seed, test epoch, or plot scale.
-
-## Paper 2 F1 accuracy rebound: controlled BN comparison
-
-The user requested leaving Papers 1 and 3 untouched and investigating the upward red tail in Paper 2. Red represents accuracy, not cross-entropy. Alpha is a weight-path coordinate, not training time: weights are `(1-alpha)*SB + alpha*LB`; alpha beyond 1 extrapolates past the large-batch model. Classification accuracy is not required to decrease monotonically along this path.
-
-Used the two existing F1 checkpoints without retraining. Kept all trainable parameters identical at each of the 61 alpha values, changing only the batch-normalization running statistics. Evaluated all 60,000 training and 10,000 test examples. The original training-data recalibration reproduced all 61 saved train/test points exactly.
-
-| BN treatment | Test accuracy at alpha 1.3 | Test accuracy at alpha 2 | Interpretation |
-| --- | ---: | ---: | --- |
-| Recalibration from training images, current notebook | 2.20% | 27.91% | Reproduces the observed rebound |
-| Fixed small-batch endpoint statistics | 10.10% | 11.12% | Largely collapses to predicting digit 3; not a faithful replacement |
-| Fixed large-batch endpoint statistics | 3.26% | 18.04% | Rebound remains without recalibration |
-| Affine interpolation/extrapolation of stored means and variances | Invalid | Invalid | Negative variances; no accuracy assigned |
-
-Thus BN handling materially changes the curve but recalibration alone does not explain the rebound. With fixed LB statistics, accuracy still recovers while test cross-entropy rises from 66.83 at alpha 1.3 to 56,913.09 at alpha 2: improved accuracy need not mean improved probabilistic predictions, because confidently wrong examples can dominate cross-entropy. This control does not reproduce the paper either.
-
-The classwise predictions confirm a real change, not a plotting error. Under the current recalibration protocol, at alpha 2 the test accuracies for digits 0, 3, 4, and 9 are approximately 69.8%, 81.4%, 55.8%, and 56.0%, respectively; several other digits remain almost entirely wrong. That partial recovery produces the aggregate upward red tail. The network is still a poor classifier, not a recovered high-accuracy endpoint.
-
-The proposed direct BN-buffer interpolation cannot cover the full displayed range for these checkpoints: every sampled alpha from 1.05 through 2 contains negative running variances; at alpha 1.3 all 2,560 BN variance entries are negative. These points were rejected, not clamped, silently converted into standard deviations, or plotted as finite results. Fixed-SB and fixed-LB statistics are diagnostic controls only: each preserves its own full endpoint model but substitutes the wrong BN buffers at the opposite endpoint, so neither is automatically a valid replacement for the complete two-endpoint curve.
-
-No primary notebook, checkpoint, or submitted figure was changed. In particular, Papers 1 and 3 remain byte-identical. All three notebook hashes, the protected figures, and all eight classifier/VAE checkpoint hashes passed before/after checks. The exact reason our extrapolated F1 behavior differs from the authors' selected pair remains unresolved; the experiment does not establish that initialization, stopping, or BN convention alone is responsible. No visual-match-driven replacement was selected.
-
-The evaluation loop took about 20 seconds on GPU 0, excluding environment/data setup and file transfer. Diagnostic artifacts are in `results_large_batch/audit_f1_bn/`: `curves.json`, `audit_metadata.json`, `bn_comparison.png`, and `diagnostic.py`. These are separate from the submitted Figure 3 results.
-
 ## Paper 2 report: chat review, completed evidence, and Phase 4 comparison
 
 The user requested a complete Paper 2 report using Paper 1's structure. The revision combines the mathematical summary, phase-specific reproduction account, original/reproduced Figure 3 panels, numerical comparisons, diagnostic evidence, an independent critical assessment, and comparison with public reviews. Author and course details follow Paper 1. No experiments were started, no training code was changed, and nothing was published.
@@ -340,6 +429,20 @@ The original OpenReview page required browser verification and its API could not
 Only the local Paper 2 report, its report-rendering assets, and this history are updated. The report retains a concise two-page summary and discloses that IDE-generated/executed results do not fully satisfy the chat-interface requirement. Report PDF and LaTeX remain local; this task does not authorize publication of Paper 2 or the upload of LaTeX sources.
 
 The final save follows the user's PDF-only scope: the adjacent pre-existing LaTeX source is left unchanged, and does not contain this report revision. The revised build source is retained only in the temporary report-build directory. Auto-review declined overwriting the assignment-folder LaTeX source; the save was narrowed to the PDF, its report-only rendering assets, and this history. No bypass was attempted. Six endpoint values, epoch counts, paired initialisation hashes, operational stopping conditions, and source-measurement hashes were checked. The final ten-page PDF compiled without layout/reference warnings; its first two pages contain the summary. The title page and comparison figure were inspected visually, and all protected original notebook/result hashes remain unchanged.
+
+## Paper 1 second review: stale PDF correction
+
+The second review correctly identified that the distributed PDF still contained the earlier pending-Phase-4 paragraph, even though the adjacent local source contained the completed comparison. Both the assignment-folder PDF and repository PDF had SHA-256 `c83318692c834f4616b63f7eb7d6c03f440e135ac5a2de5c8496a8a53fce2524`. The previous statement that the final report had been compiled and synchronized was inaccurate for the distributed artifact.
+
+Rebuilt the exact current source twice in a fresh output directory, without editing or publishing the LaTeX source. Source SHA-256: `4dac7773a4eb4359e96a10f63ba169db55fc449d6b6084255794441096328fc0`. Corrected PDF SHA-256: `fb8ac17c1f626da849ec691e35b091885aa97a7a8c8269ab82013cd0c12a3bfd`. The report remains ten pages.
+
+Validation now checks the PDF itself rather than inferring its contents from the source: page 7 contains the completed Phase 4 section and commits `8b28d5b` and `972e71c`; page 8 contains the updated interaction record; page 10 contains the third bibliography entry for the released demonstration. The outdated claims that the comparison remains pending and that no Phase 3 commit exists are absent. The rendered Phase 4 page was also inspected. The build has no overfull boxes or unresolved references; the shell-escape-disabled notice concerns an unused image-conversion capability.
+
+Synchronized the local Paper 1 README with the repository's PDF-only version by removing the LaTeX-source description and report-build section. The repository's Assignment 2 README already has no report-source link, so it requires no change.
+
+No notebook, checkpoint, original plot, diagnostic measurement, or other paper report was changed. The first public export was created after author-source inspection; tagging that export would not make it the original pre-inspection Phase 3 commit. The original mixed-paper commit remains separately identified in the provenance record. A visibility change would restrict future access, not undo earlier publication.
+
+On 22 October 2026, the repository was changed to private at the user's request and GitHub's API confirmed private visibility. This limits further public access; the earlier-publication disclosure is retained.
 
 ## Paper 2 prose review and PDF refresh
 
@@ -392,14 +495,6 @@ Only the two assignment-folder report PDFs and this history are saved. The adjac
 
 PDF SHA-256 values: Paper 1 `30ebb9b963d0fc8fa0e17967e3a4eb0d16a9a893c1a5f9bda016fcc9a9068459`; Paper 2 `3e6684063da30c1e2d82f8819d4e88b4b32aa209aaedafbcffb652266e87170a`.
 
-## Paper 2: saved checkpoint and calibration audit
-
-- Checked the supplied Appendix B against the layers, actual SB/LB batch sizes, Adam objective, dropout/BN treatment, and matched initializations. Padding, initialization, stopping, and BN calibration remain disclosed choices where the paper is incomplete; this does not establish that these choices match the authors'.
-- Reloaded all six checkpoints and recomputed interpolation at alpha = 0, 1, and 1.2 for all three architectures. All saved training/test losses and accuracies matched exactly. At alpha 0 and 1, trainable parameters exactly matched the endpoint checkpoint tensors. All six runs met the recorded training-only plateau rule.
-- Recalibrating BN with training batches of 256 rather than 512 changed test accuracy by at most 0.02 percentage points and cross-entropy by at most 0.00959 across those nine points. This specific choice cannot explain C1's large accuracy gap; the test does not exclude every possible BN convention.
-- Numeric curve shapes, extrapolation losses, and CIFAR test accuracies differ from the paper. Our SB/LB accuracies are F1 98.61%/98.20%, C1 71.00%/66.78%, and C2 86.07%/81.33%; the paper reports five-trial table averages of 98.03%/97.81%, 80.04%/77.26%, and 89.24%/87.26%, respectively. Broad SB behavior and greater sensitivity near/beyond LB are qualitatively present, not exact matches.
-- The cause of the remaining performance gaps is unresolved. A single seed and unreported implementation/training choices are limitations, not proven causes. No checkpoint or plotted value was changed merely to hide the mismatch.
-
 ## Papers 1 and 2: submission audit and repository update
 
 The user authorised pushing the missing submission files and addressing the verifiable audit findings. Paper 2 now has a README, executed notebook, report PDF, original paper, saved measurements, report panels, diagnostic and Phase 4 record in the repository export. The assignment index links both reports and run instructions. Paper 1's latest report PDF includes the previously completed author-repository discussion. Datasets, checkpoints and LaTeX sources are excluded.
@@ -429,3 +524,17 @@ The Paper 2 PDF was rebuilt twice and inspected, including its equation, compari
 The executed notebook passed schema and syntax validation, has six executed code cells and no saved errors, and matches the original Phase 3 snapshot byte-for-byte. Checked all 183 interpolation rows, six endpoint measurements and epoch counts, report-panel input hashes, README relative links and the excluded-file list. Regenerating the three report panels from the exported JSON passed without datasets or checkpoints. All 321 protected original files remain unchanged. A pronoun check initially matched hidden text from the cropped original paper; checking the authored report source avoided attributing the paper's prose to this report.
 
 Final report SHA-256 values: Paper 1 `30ebb9b963d0fc8fa0e17967e3a4eb0d16a9a893c1a5f9bda016fcc9a9068459`; Paper 2 `5fea3ef08e3e8871286b73ad2a64a5da3483ce07582ab58d42111e07a48a6c96`. The adjacent earlier LaTeX sources are unchanged under the PDF-only save scope.
+
+## Submission finalisation: Papers 2 and 3
+
+Paper 1's notebook, measurements, report and scientific content are unchanged.
+
+Paper 2 now selects the fresh chat-derived seed-42 six-model run. The final notebook is `paper_2_large_batch/reruns/chat_seed42_v2_20261022/on_large_batch_training_chat_seed42_v2_bn_recalibrated.executed.ipynb`. Its training code and learned weights are preserved; only the interpolation-path BN evaluation was corrected. Training-only recalibration replaces linear means/geometric variances, including at the endpoints. All 183 path points are finite. The six-model run and original analysis took 65.2 minutes; the corrected analysis took 5.12 minutes without optimizer updates.
+
+Final recalibrated SB/LB test accuracies are F1 98.52/98.20%, C1 71.24/66.68%, and C2 85.98/79.65%. The report's three comparison panels, endpoint table, training epochs, settings, error analysis and workflow description now refer to this run. The previous IDE-built notebook and its measurements remain labelled as earlier results. The original geometric-BN rerun outputs also remain available. The fresh attempt used chat-derived code, but IDE-assisted execution and prior author-code access are still disclosed.
+
+Paper 3 retains the completed earlier `seed42_v1` pair and its unchanged executed notebook. The report now includes the original/reproduced Figure 7A/B comparison, completed metrics, observed factor mixing, variance differences, the rejected whole-loss-rescaling pilot, limitations of the 100-epoch budget and the distinction between posterior-mean reconstruction and the expected ELBO term. The later chat-generated run is not a source for the submitted figure. At the recorded selection cutoff (2026-10-22 23:40 CDT), that attempt had beta=4 at epoch 100 and beta=1 at epoch 6. This is a historical cutoff, not a live status claim.
+
+The Paper 3 publication page and official dataset listing were checked after the earlier local Phase 3 snapshot. No author Figure 7 training implementation was identified in those resources. No third-party trainer was inspected or copied, and unknown training settings remain unresolved. A standalone figure renderer and dataset preparation instructions support inspection and fresh training without altering the original notebook.
+
+Both report sources were rebuilt twice and their compiled text and comparison pages were checked. The final artifact records distinguish selected runs from earlier snapshots and include notebook, figure and report checksums. Only PDFs, notebooks, instructions and supporting measurements are published; data, large model checkpoints, LaTeX sources and unrelated local refs are excluded.

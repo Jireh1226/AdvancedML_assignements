@@ -1,21 +1,21 @@
 {
   "F1": {
-    "source": "results_large_batch/seed42_v1/F1_interpolation.json",
-    "source_sha256": "667a2579978b5274fd4e1afcfd2e76387909d18b14ea3643b83ccc1a18c66db1",
+    "source": "reruns/chat_seed42_v2_20261022/results_bn_recalibrated/analysis/path_F1_seed42_2d3c23d1fb5d/path.csv",
+    "source_sha256": "494adb13eaedef6c58aa118f21f3d15eee585f6b31d7ecbb37344bd88b69dd36",
     "points": 61,
     "smoothing": false,
     "output": "F1_panel.pdf"
   },
   "C1": {
-    "source": "results_large_batch/seed42_v1/C1_interpolation.json",
-    "source_sha256": "9cbc45391ffc38d3e4634b6ef3b89538eafda2ecae747e0639163baf04dd01c2",
+    "source": "reruns/chat_seed42_v2_20261022/results_bn_recalibrated/analysis/path_C1_seed42_44ee29177815/path.csv",
+    "source_sha256": "17267be9a6911ad8a9fbf7d604b14c42e3bfc132fd65df90d28005e5b8b22d5d",
     "points": 61,
     "smoothing": false,
     "output": "C1_panel.pdf"
   },
   "C2": {
-    "source": "results_large_batch/seed42_v1/C2_interpolation.json",
-    "source_sha256": "f766733ded9fffb5ae44082613c44abb0d24f4cccab2944db3c389254f2e0e0c",
+    "source": "reruns/chat_seed42_v2_20261022/results_bn_recalibrated/analysis/path_C2_seed42_f6106d453b23/path.csv",
+    "source_sha256": "fab6349c7191f2991c87529415b100b0bfa1b170f43805874522cf7c126b34ee",
     "points": 61,
     "smoothing": false,
     "output": "C2_panel.pdf"

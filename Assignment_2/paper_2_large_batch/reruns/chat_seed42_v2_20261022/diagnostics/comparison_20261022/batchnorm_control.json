@@ -1,0 +1,521 @@
+{
+  "training_performed": false,
+  "purpose": "Inspect the completed attempt; not a replacement figure or parameter selection.",
+  "protocol": "Same trained weights at each alpha; only stored BN statistics change. Full training-data recalibration, dropout disabled, batch size 512, matching the earlier notebook's procedure.",
+  "caveat": "Recalibration also changes endpoint BN buffers, so it is a different evaluation convention, not a proof that it matches the authors' protocol.",
+  "elapsed_seconds": 29.168371068313718,
+  "checkpoint_hashes_unchanged": {
+    "results/C1_LB_seed42_b680f8fa1cdf/last.pt": "5f2cbc9a182c75071d3f655a80dc53ce209cd07b0a837b6493e71ea134008593",
+    "results/C1_SB_seed42_509570b7933c/last.pt": "2e266fc30b4d0167c0e9b192d91ea31d9dae1f3b548f79478f97f3563941aae7",
+    "results/C2_LB_seed42_2ae0c51d70f0/last.pt": "6fdf0a9846e91bf8d6e0d8281ec1c15babdd6891c2725a06022272cb5b7e8b27",
+    "results/C2_SB_seed42_a971d176c038/last.pt": "f399d470565624a58caa422910952ee2928f36aae8de735125235fa40df01859",
+    "results/F1_LB_seed42_99bbf7e92fed/last.pt": "f1af04a9794ba4d5acac253e864801b150e34d01d789e125f735cab0c44c83ec",
+    "results/F1_SB_seed42_28f1b9732aee/last.pt": "bb91564d4d4ae7ee993dcf1ae7901ff77571ad2e9421b5745eff991aca442ce7"
+  },
+  "records": [
+    {
+      "network": "F1",
+      "alpha": 0.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 0.0016100558270816692,
+          "accuracy": 99.955,
+          "n": 60000
+        },
+        "test": {
+          "loss": 0.07714591244470786,
+          "accuracy": 98.53,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.0017863354150749122,
+          "accuracy": 99.94833333333334,
+          "n": 60000
+        },
+        "test": {
+          "loss": 0.07690020131964687,
+          "accuracy": 98.52,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 2.455496072769165,
+        "maximum": 182.73150634765625,
+        "median": 23.761371612548828,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 2.42919921875,
+        "maximum": 183.32327270507812,
+        "median": 23.66506004333496,
+        "finite": true
+      }
+    },
+    {
+      "network": "F1",
+      "alpha": 0.5,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 1.27091573360761,
+          "accuracy": 96.69333333333333,
+          "n": 60000
+        },
+        "test": {
+          "loss": 2.7950166388511657,
+          "accuracy": 95.15,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.000900571707477017,
+          "accuracy": 99.98,
+          "n": 60000
+        },
+        "test": {
+          "loss": 0.06826712414156641,
+          "accuracy": 98.55,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.42606672644615173,
+        "maximum": 13.018234252929688,
+        "median": 3.4723963737487793,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.7210094928741455,
+        "maximum": 55.99370574951172,
+        "median": 8.711666107177734,
+        "finite": true
+      }
+    },
+    {
+      "network": "F1",
+      "alpha": 1.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 2.5432844335834186e-05,
+          "accuracy": 100.0,
+          "n": 60000
+        },
+        "test": {
+          "loss": 0.07993571234668488,
+          "accuracy": 98.17,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 2.5003677625985195e-05,
+          "accuracy": 100.0,
+          "n": 60000
+        },
+        "test": {
+          "loss": 0.08004191406864557,
+          "accuracy": 98.2,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.05753346160054207,
+        "maximum": 1.2672951221466064,
+        "median": 0.4814557433128357,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.05745323747396469,
+        "maximum": 1.271755337715149,
+        "median": 0.48040297627449036,
+        "finite": true
+      }
+    },
+    {
+      "network": "F1",
+      "alpha": 2.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 2688603120.7082667,
+          "accuracy": 29.273333333333333,
+          "n": 60000
+        },
+        "test": {
+          "loss": 2752717940.3264,
+          "accuracy": 28.57,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 4.09571635131836,
+          "accuracy": 28.83,
+          "n": 60000
+        },
+        "test": {
+          "loss": 4.163255498504639,
+          "accuracy": 29.08,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.0007271511713042855,
+        "maximum": 0.10168790817260742,
+        "median": 0.005327299702912569,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 1.8046709299087524,
+        "maximum": 152.29776000976562,
+        "median": 26.959606170654297,
+        "finite": true
+      }
+    },
+    {
+      "network": "C1",
+      "alpha": 0.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 0.0222618278157711,
+          "accuracy": 99.236,
+          "n": 50000
+        },
+        "test": {
+          "loss": 2.3884719081878663,
+          "accuracy": 70.51,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.004588135917782784,
+          "accuracy": 99.89,
+          "n": 50000
+        },
+        "test": {
+          "loss": 2.2882813213348387,
+          "accuracy": 71.24,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.019609829410910606,
+        "maximum": 66.72450256347656,
+        "median": 3.2828073501586914,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.019336296245455742,
+        "maximum": 64.55055236816406,
+        "median": 3.259819984436035,
+        "finite": true
+      }
+    },
+    {
+      "network": "C1",
+      "alpha": 0.5,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 2.2645920962524415,
+          "accuracy": 68.548,
+          "n": 50000
+        },
+        "test": {
+          "loss": 4.468242887115479,
+          "accuracy": 56.38,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.2491568857574463,
+          "accuracy": 92.63,
+          "n": 50000
+        },
+        "test": {
+          "loss": 2.149130164337158,
+          "accuracy": 69.43,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.003474229946732521,
+        "maximum": 14.230628967285156,
+        "median": 1.1049357652664185,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.006179484538733959,
+        "maximum": 23.827234268188477,
+        "median": 1.1337406635284424,
+        "finite": true
+      }
+    },
+    {
+      "network": "C1",
+      "alpha": 1.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 0.15016890907287597,
+          "accuracy": 94.27,
+          "n": 50000
+        },
+        "test": {
+          "loss": 2.070117145729065,
+          "accuracy": 65.52,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.0265068963098526,
+          "accuracy": 99.258,
+          "n": 50000
+        },
+        "test": {
+          "loss": 1.9679601943969727,
+          "accuracy": 66.68,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.0006155216251499951,
+        "maximum": 7.8386549949646,
+        "median": 0.383870393037796,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.0006237587658688426,
+        "maximum": 7.291412830352783,
+        "median": 0.3778701424598694,
+        "finite": true
+      }
+    },
+    {
+      "network": "C1",
+      "alpha": 2.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 963646.11744,
+          "accuracy": 7.282,
+          "n": 50000
+        },
+        "test": {
+          "loss": 962422.3294,
+          "accuracy": 7.35,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 6.909801557617188,
+          "accuracy": 9.64,
+          "n": 50000
+        },
+        "test": {
+          "loss": 6.900884216308594,
+          "accuracy": 9.22,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 1.2659045751206577e-05,
+        "maximum": 3.3627798557281494,
+        "median": 0.04627162218093872,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.012315544299781322,
+        "maximum": 96.93877410888672,
+        "median": 6.39023494720459,
+        "finite": true
+      }
+    },
+    {
+      "network": "C2",
+      "alpha": 0.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 0.006435646838610992,
+          "accuracy": 99.802,
+          "n": 50000
+        },
+        "test": {
+          "loss": 0.9120531116485596,
+          "accuracy": 85.62,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.00333973257671576,
+          "accuracy": 99.898,
+          "n": 50000
+        },
+        "test": {
+          "loss": 0.86390769739151,
+          "accuracy": 85.98,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.0039893705397844315,
+        "maximum": 5678.17626953125,
+        "median": 194.8413848876953,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.0035321309696882963,
+        "maximum": 5749.96240234375,
+        "median": 193.28208923339844,
+        "finite": true
+      }
+    },
+    {
+      "network": "C2",
+      "alpha": 0.5,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 268.042963828125,
+          "accuracy": 25.014,
+          "n": 50000
+        },
+        "test": {
+          "loss": 287.47182529296873,
+          "accuracy": 23.77,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.07314252934455871,
+          "accuracy": 97.624,
+          "n": 50000
+        },
+        "test": {
+          "loss": 0.9214920263290405,
+          "accuracy": 82.82,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.0016094353049993515,
+        "maximum": 434.69598388671875,
+        "median": 15.08722972869873,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.0017281962791457772,
+        "maximum": 2242.294677734375,
+        "median": 50.74301528930664,
+        "finite": true
+      }
+    },
+    {
+      "network": "C2",
+      "alpha": 1.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 0.03984161170303822,
+          "accuracy": 98.638,
+          "n": 50000
+        },
+        "test": {
+          "loss": 1.4372312385559083,
+          "accuracy": 77.18,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 0.00692131955690682,
+          "accuracy": 99.788,
+          "n": 50000
+        },
+        "test": {
+          "loss": 1.2359418350219726,
+          "accuracy": 79.65,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 0.000482831965200603,
+        "maximum": 53.84825897216797,
+        "median": 1.7486026287078857,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.000486441858811304,
+        "maximum": 55.277992248535156,
+        "median": 1.7728303670883179,
+        "finite": true
+      }
+    },
+    {
+      "network": "C2",
+      "alpha": 2.0,
+      "trainable_weights_unchanged": true,
+      "saved_path_reproduced": true,
+      "original_log_variance_path": {
+        "train": {
+          "loss": 8.790649668585956e+29,
+          "accuracy": 10.0,
+          "n": 50000
+        },
+        "test": {
+          "loss": 8.771286444452153e+29,
+          "accuracy": 10.0,
+          "n": 10000
+        }
+      },
+      "training_only_recalibration": {
+        "train": {
+          "loss": 9.294142076416016,
+          "accuracy": 8.832,
+          "n": 50000
+        },
+        "test": {
+          "loss": 9.410197380065918,
+          "accuracy": 8.85,
+          "n": 10000
+        }
+      },
+      "original_variances": {
+        "minimum": 8.698243618709967e-06,
+        "maximum": 2.4301035404205322,
+        "median": 0.033270463347435,
+        "finite": true
+      },
+      "recalibrated_variances": {
+        "minimum": 0.0006235514883883297,
+        "maximum": 21500.53125,
+        "median": 343.9653015136719,
+        "finite": true
+      }
+    }
+  ]
+}

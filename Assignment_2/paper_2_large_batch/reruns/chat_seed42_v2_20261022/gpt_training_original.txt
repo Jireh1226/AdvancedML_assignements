@@ -1,0 +1,1033 @@
+Reproduce F1, C1 and C2
+Keskar et al., On Large-Batch Training for Deep Learning (ICLR 2017).
+
+Run the stages in order. Paper marks a reported setting; Choice marks a missing detail filled in here. Uses only the attached paper. Training and analysis are off until you enable them.
+
+
+1. Setup
+Cell 2 of 34
+
+1. Setup
+Select the networks, five trial seeds, and folders. Helper cells are collapsed so the main steps stay easy to follow.
+
+
+Code cell 3
+Cell 3 of 34
+
+# Install if needed:
+# %pip install torch torchvision numpy scipy pandas matplotlib
+
+
+Code cell 4
+Cell 4 of 34
+
+import os
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+import copy, hashlib, json, math, platform, random, sys, time, warnings
+from dataclasses import dataclass, asdict, replace
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
+import scipy
+from scipy.optimize import minimize
+from scipy.linalg import solve_triangular
+import torch
+from torch import nn
+from torch.nn import functional as F
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+import torchvision
+from IPython.display import display
+
+torch.use_deterministic_algorithms(True)
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
+if torch.cuda.is_available():
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+Code cell 5
+Cell 5 of 34
+
+NETWORKS = ("F1", "C1", "C2")
+SEEDS = (0, 1, 2, 3, 4)  # Paper: five trials; Choice: these seed values
+DATA_ROOT = Path("data")
+OUTPUT_ROOT = Path("large_batch_paper_only_results")
+print(f"Device: {DEVICE}")
+
+
+Code cell 6
+Cell 6 of 34
+
+@dataclass(frozen=True)
+class Protocol:
+    learning_rate: float = 1e-3
+    adam_betas: tuple = (0.9, 0.999)
+    adam_eps: float = 1e-8
+    weight_decay: float = 0.0
+    small_batch: int = 256
+    large_batch_fraction: float = 0.10
+    pixel_scale: str = "unit"
+    bn_eps: float = 1e-5
+    bn_momentum: float = 0.1
+    output_batch_norm: bool = False
+    dropout: float = 0.5
+    min_epochs: int = 100
+    patience: int = 20
+    min_delta: float = 1e-4
+    eval_batch: int = 256
+    sharpness_eps: tuple = (1e-3, 5e-4)
+    subspace_dim: int = 100
+    basis_block_rows: int = 16384
+    lbfgs_maxiter: int = 10
+    lbfgs_maxcor: int = 10
+    lbfgs_maxls: int = 20
+    lbfgs_ftol: float = 1e-12
+    lbfgs_gtol: float = 1e-8
+    path_points: int = 121
+    path_selector_seed: int = 20261022
+    analysis_seed: int = 1729
+    sd_ddof: int = 1
+
+CFG = Protocol()
+
+IMPLEMENTATION_SHA256 = "513930159c7f025e9b051e02676b2aa633512d1cd2c7fadb630c51fe4f4b00c2"
+
+PAPER_SHA256 = "fbb3d2d981314adc7e5e3df7ec2c067f03d769a2a418c4d2580fa456cc5548d6"
+
+ARCHITECTURE_NOTES = "Xavier; SAME C1 conv/pool; C2 13 conv; hidden affine-BN-ReLU; dense dropout; log-BN-variance path"
+
+ENVIRONMENT = {
+    "python": platform.python_version(), "torch": torch.__version__,
+    "torchvision": torchvision.__version__, "numpy": np.__version__,
+    "scipy": scipy.__version__, "pandas": pd.__version__, "matplotlib": matplotlib.__version__,
+    "device_type": DEVICE.type, "cuda": torch.version.cuda,
+    "cudnn": torch.backends.cudnn.version(),
+    "device_name": torch.cuda.get_device_name(0) if DEVICE.type == "cuda" else platform.machine(),
+    "num_workers": 0, "deterministic_algorithms": True,
+    "torch_num_threads": torch.get_num_threads(),
+    "torch_num_interop_threads": torch.get_num_interop_threads(),
+    "platform": platform.platform(), "default_dtype": str(torch.get_default_dtype()),
+}
+CODE_REVISION = "paper-only-clean-v2"  # change after editing implementation code
+def stable_json(obj):
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+def digest(obj):
+    return hashlib.sha256(stable_json(obj).encode()).hexdigest()
+
+def seed_all(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+def json_write(path, value):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(value, indent=2, allow_nan=False))
+    os.replace(tmp, path)
+
+def torch_write(path, value):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    torch.save(value, tmp)
+    os.replace(tmp, path)
+
+def load_checkpoint(path):
+    # Only load checkpoints created by this notebook: they contain Python RNG state.
+    return torch.load(path, map_location="cpu", weights_only=False)
+
+def make_loader(dataset, batch_size, shuffle, seed, drop_last=False):
+    if batch_size < 2 and shuffle:
+        raise ValueError("Training batch must be at least 2 for dense batch normalization")
+    generator = torch.Generator().manual_seed(seed)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
+                      drop_last=drop_last, num_workers=0, generator=generator)
+
+@torch.no_grad()
+def evaluate(model, loader):
+    model.eval()
+    parameter = next(model.parameters())
+    total_loss, correct, count = 0.0, 0, 0
+    for x, y in loader:
+        x = x.to(device=parameter.device, dtype=parameter.dtype)
+        y = y.to(parameter.device)
+        logits = model(x)
+        total_loss += float(F.cross_entropy(logits, y, reduction="sum").item())
+        correct += int((logits.argmax(1) == y).sum().item())
+        count += len(y)
+    if count != len(loader.dataset):
+        raise RuntimeError("Evaluation must cover the full dataset, including its last batch")
+    return {"loss": total_loss / count, "accuracy": 100.0 * correct / count, "n": count}
+
+def state_hash(state):
+    h = hashlib.sha256()
+    for name, value in state.items():
+        h.update(name.encode())
+        h.update(value.detach().cpu().contiguous().numpy().tobytes())
+    return h.hexdigest()
+
+
+2. Load data
+Cell 7 of 34
+
+2. Load data
+Paper: MNIST for F1 (60,000 train / 10,000 test); CIFAR-10 for C1/C2 (50,000 / 10,000). Appendix A.
+
+Choice: scale pixels to [0,1] for numerical convenience; the paper does not specify pixel scaling. No normalization or augmentation. Set both switches below to True to download and load the datasets; leave DOWNLOAD_DATA=False if they are already in DATA_ROOT.
+
+
+Code cell 8
+Cell 8 of 34
+
+LOAD_DATA = False
+DOWNLOAD_DATA = False
+CFG = replace(CFG, pixel_scale="unit")  # "raw255" keeps the original pixel scale
+
+
+Code cell 9
+Cell 9 of 34
+
+class PixelTransform:
+    def __init__(self, scale):
+        if scale not in ("unit", "raw255"):
+            raise ValueError("pixel_scale must be unit or raw255")
+        self.scale = scale
+        self.to_tensor = transforms.ToTensor()
+    def __call__(self, image):
+        value = self.to_tensor(image)
+        return value if self.scale == "unit" else value * 255.0
+
+_DATA_CACHE = {}
+
+def get_data(network, cfg=CFG):
+    dataset_name = "MNIST" if network == "F1" else "CIFAR10"
+    key = (dataset_name, cfg.pixel_scale, str(DATA_ROOT.resolve()))
+    if key not in _DATA_CACHE:
+        cls = datasets.MNIST if dataset_name == "MNIST" else datasets.CIFAR10
+        transform = PixelTransform(cfg.pixel_scale)
+        train = cls(str(DATA_ROOT), train=True, download=DOWNLOAD_DATA, transform=transform)
+        test = cls(str(DATA_ROOT), train=False, download=DOWNLOAD_DATA, transform=transform)
+        expected_train = 60000 if dataset_name == "MNIST" else 50000
+        assert len(train) == expected_train and len(test) == 10000
+        hashes = {}
+        for split, ds in (("train", train), ("test", test)):
+            h = hashlib.sha256()
+            data = ds.data.numpy() if torch.is_tensor(ds.data) else np.asarray(ds.data)
+            h.update(memoryview(np.ascontiguousarray(data)).cast("B"))
+            h.update(np.asarray(ds.targets, dtype=np.int64).tobytes())
+            hashes[split] = h.hexdigest()
+        _DATA_CACHE[key] = (train, test, {"dataset": dataset_name, "hashes": hashes,
+                                       "train_n": len(train), "test_n": len(test)})
+    return _DATA_CACHE[key]
+
+
+Code cell 10
+Cell 10 of 34
+
+if LOAD_DATA:
+    for network in NETWORKS:
+        train_data, test_data, _ = get_data(network, CFG)
+        print(f"{network}: {len(train_data):,} training / {len(test_data):,} testing images")
+
+
+3. Build the models
+Cell 11 of 34
+
+3. Build the models
+Model	Architecture from the paper	Source
+F1	Five dense layers of 512; 10 outputs	B.1
+C1	Two 64-filter, 5×5 conv layers (stride 2), each followed by pooling; dense 384 → 192 → 10	B.3
+C2	3×3 conv blocks: 64×2 → 128×2 → 256×3 → 512×3 → 512×3, pooling after each; dense 512 → 10	B.4
+
+
+Paper: BN/ReLU hidden layers; dense dropout retention 0.5 for C1/C2. B.4's reference to “C3” is interpreted as C2, consistent with its heading.
+
+Choices: Xavier uniform weights and zero biases; identical initial weights within each SB/LB pair. Affine → BN → ReLU, with dropout after dense ReLU and no output BN. C1 uses SAME padding and pool stride 2 so the stated layers fit (32→16→8→4→2); C2 uses SAME convolution and 2×2 stride-2 pooling. These details are not fully specified.
+
+
+Code cell 12
+Cell 12 of 34
+
+CFG = replace(
+    CFG,
+    dropout=0.5,              # Paper: 0.5 retention, equivalent to 0.5 dropout
+    bn_eps=1e-5,              # Choice: numerical stability constant, unspecified
+    bn_momentum=0.1,          # Choice: running-statistics update rate, unspecified
+    output_batch_norm=False, # Choice: BN in hidden layers only
+)
+
+
+Code cell 13
+Cell 13 of 34
+
+class SameConv2d(nn.Conv2d):
+    def forward(self, x):
+        h, w = x.shape[-2:]
+        sh, sw = self.stride
+        kh, kw = self.kernel_size
+        dh, dw = self.dilation
+        ph = max((math.ceil(h/sh)-1)*sh + dh*(kh-1)+1-h, 0)
+        pw = max((math.ceil(w/sw)-1)*sw + dw*(kw-1)+1-w, 0)
+        x = F.pad(x, (pw//2, pw-pw//2, ph//2, ph-ph//2))
+        return F.conv2d(x, self.weight, self.bias, self.stride, 0, self.dilation, self.groups)
+
+class SameMaxPool2d(nn.Module):
+    def __init__(self, kernel_size=3, stride=2):
+        super().__init__()
+        self.kernel_size, self.stride = kernel_size, stride
+    def forward(self, x):
+        h, w = x.shape[-2:]
+        k, s = self.kernel_size, self.stride
+        ph, pw = max((math.ceil(h/s)-1)*s+k-h, 0), max((math.ceil(w/s)-1)*s+k-w, 0)
+        x = F.pad(x, (pw//2, pw-pw//2, ph//2, ph-ph//2), value=-float("inf"))
+        return F.max_pool2d(x, k, s)
+
+def conv_block(cin, cout, kernel, stride, cfg):
+    return [SameConv2d(cin, cout, kernel, stride=stride, bias=True),
+            nn.BatchNorm2d(cout, eps=cfg.bn_eps, momentum=cfg.bn_momentum), nn.ReLU()]
+
+def dense_block(nin, nout, cfg, dropout=False):
+    layers = [nn.Linear(nin, nout, bias=True),
+              nn.BatchNorm1d(nout, eps=cfg.bn_eps, momentum=cfg.bn_momentum), nn.ReLU()]
+    return layers + ([nn.Dropout(cfg.dropout)] if dropout else [])
+
+def initialize(module):
+    if isinstance(module, (nn.Linear, nn.Conv2d)):
+        nn.init.xavier_uniform_(module.weight)
+        if module.bias is not None:
+            nn.init.zeros_(module.bias)
+    elif isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d)):
+        nn.init.ones_(module.weight)
+        nn.init.zeros_(module.bias)
+        module.reset_running_stats()
+
+
+Code cell 14
+Cell 14 of 34
+
+def make_model(network, cfg=CFG):
+    if network == "F1":
+        layers = [nn.Flatten()]
+        previous = 784
+        for _ in range(5):
+            layers += dense_block(previous, 512, cfg)
+            previous = 512
+        layers += [nn.Linear(512, 10)]
+    elif network == "C1":
+        layers = conv_block(3, 64, 5, 2, cfg) + [SameMaxPool2d(3, 2)]
+        layers += conv_block(64, 64, 5, 2, cfg) + [SameMaxPool2d(3, 2), nn.Flatten()]
+        layers += dense_block(64*2*2, 384, cfg, True)
+        layers += dense_block(384, 192, cfg, True) + [nn.Linear(192, 10)]
+    elif network == "C2":
+        layers, previous = [], 3
+        for channels, depth in ((64,2), (128,2), (256,3), (512,3), (512,3)):
+            for _ in range(depth):
+                layers += conv_block(previous, channels, 3, 1, cfg)
+                previous = channels
+            layers += [nn.MaxPool2d(2, stride=2)]
+        layers += [nn.Flatten()] + dense_block(512, 512, cfg, True) + [nn.Linear(512, 10)]
+    else:
+        raise ValueError(network)
+    if cfg.output_batch_norm:
+        layers += [nn.BatchNorm1d(10, eps=cfg.bn_eps, momentum=cfg.bn_momentum)]
+    model = nn.Sequential(*layers)
+    model.apply(initialize)
+    return model
+
+
+Code cell 15
+Cell 15 of 34
+
+def architecture_checks(cfg=CFG):
+    rows = []
+    with torch.random.fork_rng(devices=[]):
+        for network in ("F1", "C1", "C2"):
+            seed_all(123)
+            model = make_model(network, cfg).eval()
+            shape = (2, 1, 28, 28) if network == "F1" else (2, 3, 32, 32)
+            with torch.no_grad():
+                output = model(torch.zeros(shape))
+            assert output.shape == (2, 10) and torch.isfinite(output).all()
+            rows.append({"network": network,
+                         "parameters": sum(p.numel() for p in model.parameters()),
+                         "conv_layers": sum(isinstance(m, nn.Conv2d) for m in model.modules()),
+                         "linear_layers": sum(isinstance(m, nn.Linear) for m in model.modules()),
+                         "dropout_layers": sum(isinstance(m, nn.Dropout) for m in model.modules())})
+            del model
+    return pd.DataFrame(rows)
+
+
+Code cell 16
+Cell 16 of 34
+
+display(architecture_checks(CFG))
+
+
+4. Train small-batch and large-batch models
+Cell 17 of 34
+
+4. Train small-batch and large-batch models
+Parameter	Value	Source / reason
+Loss / optimizer	Mean cross-entropy / Adam	Paper §2.2
+Batch size	SB 256; LB 10% of training data	Paper §2.2: LB = 6,000 for F1; 5,000 for C1/C2
+Learning rate	0.001	Choice: conventional starting value; omitted in the paper
+Adam β / ε	(0.9, 0.999) / 10⁻⁸	Choice: conventional constants; omitted
+Schedule / weight decay	None / 0	Choice: neither is specified
+Stopping	Training-loss plateau	Paper §2.2; exact rule below is our choice
+
+
+Choices: at least 100 epochs, patience 20, improvement threshold 10⁻⁴; a 300-epoch cap bounds compute. Raise the cap to resume, or use None for no cap. Test accuracy never controls stopping.
+
+Shuffle each epoch and omit its incomplete batch to keep training batch sizes fixed. Evaluate on all examples with dropout off and BN statistics frozen. Keep LB batches intact: gradient accumulation would change BN behavior. C2's batch of 5,000 requires substantial GPU memory.
+
+Set RUN_TRAINING=True to train. Each model/seed/batch-size run saves separately and resumes from its last completed epoch.
+
+
+Code cell 18
+Cell 18 of 34
+
+RUN_TRAINING = False
+MAX_EPOCHS = 300
+CFG = replace(
+    CFG,
+    small_batch=256,
+    large_batch_fraction=0.10,
+    learning_rate=1e-3,
+    adam_betas=(0.9, 0.999),
+    adam_eps=1e-8,
+    weight_decay=0.0,
+    min_epochs=100,
+    patience=20,
+    min_delta=1e-4,
+    eval_batch=256,  # Choice: evaluation chunk size to limit memory
+)
+ALLOW_CAPPED_ANALYSIS = False  # leave False to require the training-loss stopping rule
+
+
+Code cell 19
+Cell 19 of 34
+
+def training_settings(cfg):
+    analysis_fields = {
+        "sharpness_eps", "subspace_dim", "basis_block_rows", "lbfgs_maxiter", "lbfgs_maxcor",
+        "lbfgs_maxls", "lbfgs_ftol", "lbfgs_gtol", "path_points", "path_selector_seed",
+        "analysis_seed", "sd_ddof",
+    }
+    return {key: value for key, value in asdict(cfg).items() if key not in analysis_fields}
+
+def capture_rng(loaders):
+    return {"python": random.getstate(), "numpy": np.random.get_state(),
+            "torch": torch.get_rng_state(),
+            "cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+            "loaders": {key: loader.generator.get_state() for key, loader in loaders.items()}}
+
+def restore_rng(state, loaders):
+    random.setstate(state["python"])
+    np.random.set_state(state["numpy"])
+    torch.set_rng_state(state["torch"])
+    if state["cuda"] is not None:
+        if not torch.cuda.is_available():
+            raise RuntimeError("A CUDA checkpoint cannot exactly resume on this CPU runtime")
+        torch.cuda.set_rng_state_all(state["cuda"])
+    for key, loader in loaders.items():
+        loader.generator.set_state(state["loaders"][key])
+
+def experiment_manifest(network, regime, seed, batch_size, cfg, data_info):
+    return {"schema": 1, "implementation_sha256": IMPLEMENTATION_SHA256,
+            "code_revision": CODE_REVISION,
+            "paper_sha256": PAPER_SHA256, "architecture_notes": ARCHITECTURE_NOTES,
+            "network": network, "regime": regime, "seed": seed, "batch_size": batch_size,
+            "protocol": training_settings(cfg), "data": data_info, "environment": ENVIRONMENT}
+
+def experiment_location(network, regime, seed, cfg, data_info, root=OUTPUT_ROOT):
+    batch_size = cfg.small_batch if regime == "SB" else int(data_info["train_n"] * cfg.large_batch_fraction)
+    manifest = experiment_manifest(network, regime, seed, batch_size, cfg, data_info)
+    directory = Path(root) / f"{network}_{regime}_seed{seed}_{digest(manifest)[:12]}"
+    return directory, manifest
+
+def write_trial_summaries(directory, checkpoint):
+    # The atomic checkpoint is authoritative if interruption occurs during summary writes.
+    history = checkpoint["history"]
+    last = history[-1]
+    manifest = checkpoint["manifest"]
+    json_write(directory / "manifest.json", manifest)
+    json_write(directory / "history.json", history)
+    json_write(directory / "result.json", {
+        "network": manifest["network"], "regime": manifest["regime"], "seed": manifest["seed"],
+        "status": checkpoint["status"], "completed_epoch": checkpoint["completed_epoch"],
+        "global_step": checkpoint["global_step"],
+        "initial_state_sha256": checkpoint["initial_state_sha256"],
+        "train": {"loss": last["train_loss"], "accuracy": last["train_accuracy"], "n": manifest["data"]["train_n"]},
+        "test": {"loss": last["test_loss"], "accuracy": last["test_accuracy"], "n": manifest["data"]["test_n"]},
+        "checkpoint_model_sha256": state_hash(checkpoint["model"]),
+    })
+
+def train_trial(network, regime, seed, train_set, test_set, data_info,
+                cfg=CFG, max_epochs=MAX_EPOCHS, root=OUTPUT_ROOT, device=DEVICE):
+    if regime not in ("SB", "LB"):
+        raise ValueError(regime)
+    if cfg.min_epochs < 1 or cfg.patience < 1 or cfg.min_delta < 0:
+        raise ValueError("Invalid stopping-rule settings")
+    if max_epochs is not None and max_epochs < 1:
+        raise ValueError("MAX_EPOCHS must be positive or None")
+    directory, manifest = experiment_location(network, regime, seed, cfg, data_info, root)
+    batch_size = manifest["batch_size"]
+    if batch_size > len(train_set):
+        raise ValueError("Batch exceeds training dataset")
+    directory.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = directory / "last.pt"
+    seed_all(seed)
+    model = make_model(network, cfg).to(device)
+    initial_hash = state_hash(model.state_dict())
+    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.learning_rate,
+                                 betas=cfg.adam_betas, eps=cfg.adam_eps,
+                                 weight_decay=cfg.weight_decay, amsgrad=False,
+                                 foreach=False, fused=False)
+    loaders = {
+        "train": make_loader(train_set, batch_size, True, seed + 1000, True),
+        "eval_train": make_loader(train_set, cfg.eval_batch, False, seed + 2000),
+        "eval_test": make_loader(test_set, cfg.eval_batch, False, seed + 3000),
+    }
+    completed_epoch, global_step, history = 0, 0, []
+    best_reference, stale_epochs, status = float("inf"), 0, "running"
+    if checkpoint_path.exists():
+        saved = load_checkpoint(checkpoint_path)
+        if stable_json(saved["manifest"]) != stable_json(manifest):
+            raise RuntimeError("Checkpoint manifest mismatch; refusing to overwrite")
+        if saved["initial_state_sha256"] != initial_hash:
+            raise RuntimeError("Initialization changed; use a new result directory")
+        model.load_state_dict(saved["model"])
+        optimizer.load_state_dict(saved["optimizer"])
+        completed_epoch, global_step = saved["completed_epoch"], saved["global_step"]
+        history, best_reference = saved["history"], saved["best_reference"]
+        stale_epochs, status = saved["stale_epochs"], saved["status"]
+        restore_rng(saved["rng"], loaders)
+        write_trial_summaries(directory, saved)
+        if status == "converged" or (max_epochs is not None and completed_epoch >= max_epochs):
+            print(f"{network} {regime} seed={seed}: reusing {completed_epoch} saved epochs")
+            return directory
+    json_write(directory / "manifest.json", manifest)
+    while max_epochs is None or completed_epoch < max_epochs:
+        model.train()
+        seen, stochastic_loss = 0, 0.0
+        started = time.time()
+        for x, y in loaders["train"]:
+            x, y = x.to(device), y.to(device)
+            optimizer.zero_grad(set_to_none=True)
+            loss = F.cross_entropy(model(x), y)
+            if not torch.isfinite(loss):
+                raise FloatingPointError(f"Nonfinite training loss in {directory.name}; last checkpoint preserved")
+            loss.backward()
+            optimizer.step()
+            global_step += 1
+            stochastic_loss += float(loss.item()) * len(y)
+            seen += len(y)
+        train_metrics = evaluate(model, loaders["eval_train"])
+        test_metrics = evaluate(model, loaders["eval_test"])
+        if not math.isfinite(train_metrics["loss"]) or not math.isfinite(test_metrics["loss"]):
+            raise FloatingPointError("Nonfinite evaluation loss; refusing to checkpoint it")
+        completed_epoch += 1
+        if train_metrics["loss"] < best_reference - cfg.min_delta:
+            best_reference, stale_epochs = train_metrics["loss"], 0
+        else:
+            stale_epochs += 1
+        converged = completed_epoch >= cfg.min_epochs and stale_epochs >= cfg.patience
+        capped = max_epochs is not None and completed_epoch >= max_epochs
+        status = "converged" if converged else ("budget_exhausted" if capped else "running")
+        history.append({"epoch": completed_epoch, "global_step": global_step,
+                        "training_examples_seen": seen,
+                        "stochastic_training_loss": stochastic_loss / seen,
+                        "train_loss": train_metrics["loss"], "test_loss": test_metrics["loss"],
+                        "train_accuracy": train_metrics["accuracy"], "test_accuracy": test_metrics["accuracy"],
+                        "stale_epochs": stale_epochs, "seconds": time.time()-started})
+        payload = {"manifest": manifest, "initial_state_sha256": initial_hash,
+                   "model": model.state_dict(), "optimizer": optimizer.state_dict(),
+                   "scheduler": None, "completed_epoch": completed_epoch,
+                   "global_step": global_step, "history": history,
+                   "best_reference": best_reference, "stale_epochs": stale_epochs,
+                   "status": status, "max_epochs_at_save": max_epochs,
+                   "rng": capture_rng(loaders)}
+        torch_write(checkpoint_path, payload)
+        write_trial_summaries(directory, payload)
+        print(f"{network} {regime} seed={seed} epoch={completed_epoch} "
+              f"train_loss={train_metrics['loss']:.6f} test_acc={test_metrics['accuracy']:.2f}%")
+        if converged:
+            break
+    return directory
+
+def require_usable(checkpoint, allow_capped=False):
+    if checkpoint["status"] != "converged" and not allow_capped:
+        raise RuntimeError("Run is not converged. Increase MAX_EPOCHS and resume; "
+                           "or explicitly enable ALLOW_CAPPED_ANALYSIS for provisional analysis.")
+
+def saved_trial(network, regime, seed, cfg=CFG):
+    train, test, data_info = get_data(network, cfg)
+    directory, manifest = experiment_location(network, regime, seed, cfg, data_info, OUTPUT_ROOT)
+    path = directory / "last.pt"
+    if not path.exists():
+        raise FileNotFoundError(f"Train this trial first: {path}")
+    saved = load_checkpoint(path)
+    if stable_json(saved["manifest"]) != stable_json(manifest):
+        raise RuntimeError("Saved experiment does not match current configuration")
+    require_usable(saved, ALLOW_CAPPED_ANALYSIS)
+    return saved, directory, train, test
+
+
+Code cell 20
+Cell 20 of 34
+
+if RUN_TRAINING:
+    for network in NETWORKS:
+        train_set, test_set, data_info = get_data(network, CFG)
+        for seed in SEEDS:
+            initial_hashes = []
+            for regime in ("SB", "LB"):
+                folder = train_trial(network, regime, seed, train_set, test_set, data_info,
+                                     cfg=CFG, max_epochs=MAX_EPOCHS, root=OUTPUT_ROOT, device=DEVICE)
+                initial_hashes.append(json.loads((folder / "result.json").read_text())["initial_state_sha256"])
+                if DEVICE.type == "cuda":
+                    torch.cuda.empty_cache()
+            assert len(set(initial_hashes)) == 1, "SB/LB did not share initial weights"
+
+
+5. Compare accuracy and learning curves
+Cell 21 of 34
+
+5. Compare accuracy and learning curves
+Compare the five-trial mean and standard deviation against Table 2. Choice: sample SD (ddof=1); the paper does not specify the denominator. Results below come only from your saved runs.
+
+
+Code cell 22
+Cell 22 of 34
+
+PAPER_ACCURACY = pd.DataFrame([
+    ("F1","SB",99.66,0.05,98.03,0.07), ("F1","LB",99.92,0.01,97.81,0.07),
+    ("C1","SB",99.89,0.02,80.04,0.12), ("C1","LB",99.66,0.20,77.26,0.42),
+    ("C2","SB",99.99,0.04,89.24,0.12), ("C2","LB",99.99,0.01,87.26,0.07),
+], columns=["network","regime","paper_train_mean","paper_train_sd","paper_test_mean","paper_test_sd"])
+
+
+Code cell 23
+Cell 23 of 34
+
+def collect_results(cfg=CFG):
+    rows, histories = [], {}
+    for network in NETWORKS:
+        _, _, info = get_data(network, cfg)
+        for seed in SEEDS:
+            for regime in ("SB", "LB"):
+                directory, _ = experiment_location(network, regime, seed, cfg, info, OUTPUT_ROOT)
+                if not (directory / "result.json").exists():
+                    continue
+                result = json.loads((directory / "result.json").read_text())
+                rows.append({"network":network,"regime":regime,"seed":seed,
+                             "status":result["status"],"epochs":result["completed_epoch"],
+                             "train_accuracy":result["train"]["accuracy"],
+                             "test_accuracy":result["test"]["accuracy"],
+                             "train_loss":result["train"]["loss"],"test_loss":result["test"]["loss"]})
+                histories[(network, regime, seed)] = pd.DataFrame(json.loads((directory / "history.json").read_text()))
+    return pd.DataFrame(rows), histories
+
+def accuracy_summary(trials, cfg=CFG):
+    if trials.empty:
+        return pd.DataFrame()
+    eligible = trials if ALLOW_CAPPED_ANALYSIS else trials[trials.status == "converged"]
+    rows = []
+    for (network, regime), group in eligible.groupby(["network", "regime"]):
+        rows.append({"network":network,"regime":regime,"n":len(group),
+                     "all_converged":bool((group.status == "converged").all()),
+                     "train_mean":group.train_accuracy.mean(),"train_sd":group.train_accuracy.std(ddof=cfg.sd_ddof),
+                     "test_mean":group.test_accuracy.mean(),"test_sd":group.test_accuracy.std(ddof=cfg.sd_ddof)})
+    return pd.DataFrame(rows).merge(PAPER_ACCURACY, on=["network","regime"]) if rows else pd.DataFrame()
+
+def plot_learning_curves(histories, seed=0):
+    fig, axes = plt.subplots(1, len(NETWORKS), figsize=(5*len(NETWORKS),4), squeeze=False)
+    for ax, network in zip(axes.flat, NETWORKS):
+        for regime, color in (("SB","tab:blue"),("LB","tab:orange")):
+            frame = histories.get((network,regime,seed))
+            if frame is None:
+                continue
+            ax.plot(frame.epoch, frame.train_accuracy, color=color, label=f"{regime} train")
+            ax.plot(frame.epoch, frame.test_accuracy, "--", color=color, label=f"{regime} test")
+        ax.set(title=f"{network}, seed {seed}", xlabel="Epoch", ylabel="Accuracy (%)")
+        if ax.lines:
+            ax.legend()
+    fig.tight_layout()
+    return fig
+
+
+Code cell 24
+Cell 24 of 34
+
+if RUN_TRAINING:
+    trials, histories = collect_results(CFG)
+    summary = accuracy_summary(trials, CFG)
+    display(summary.drop(columns=["all_converged"], errors="ignore"))
+    plot_learning_curves(histories, seed=SEEDS[0])
+    plt.show()
+
+
+6. Plot the loss between SB and LB solutions
+Cell 25 of 34
+
+6. Plot the loss between SB and LB solutions
+Paper §2.2.1 / Figure 3: evaluate train/test loss and accuracy along
+\[
+\theta(\alpha)=(1-\alpha)\theta_{SB}+\alpha\theta_{LB},\qquad \alpha\in[-1,2].
+\]
+Choices: 121 points and one seeded, randomly selected paired trial per network. Use FP64 for numerical precision. BN means interpolate linearly and variances in log space to remain positive; the paper does not specify buffer handling.
+
+
+Code cell 26
+Cell 26 of 34
+
+RUN_PATHS = False
+CFG = replace(CFG, path_points=121, path_selector_seed=20261022)
+
+
+Code cell 27
+Cell 27 of 34
+
+def interpolated_state(sb_state, lb_state, alpha):
+    if alpha == 0.0:
+        return {k:v.clone() for k,v in sb_state.items()}
+    if alpha == 1.0:
+        return {k:v.clone() for k,v in lb_state.items()}
+    state = {}
+    for name, left in sb_state.items():
+        right = lb_state[name]
+        if not left.is_floating_point():
+            state[name] = (left if alpha < 0.5 else right).clone()
+        elif name.endswith("running_var"):
+            if torch.any(left <= 0) or torch.any(right <= 0):
+                raise ValueError("BN variance must be positive before logarithmic interpolation")
+            state[name] = torch.exp((1-alpha)*left.double().log() + alpha*right.double().log())
+        else:
+            state[name] = (1-alpha)*left.double() + alpha*right.double()
+    return state
+
+def path_trial_seed(network, seeds=SEEDS, cfg=CFG):
+    rng = np.random.default_rng(cfg.path_selector_seed + ("F1","C1","C2").index(network))
+    return int(rng.choice(seeds))
+
+def parameter_path(network, seed, cfg=CFG):
+    sb, sb_dir, train, test = saved_trial(network, "SB", seed, cfg)
+    lb, lb_dir, _, _ = saved_trial(network, "LB", seed, cfg)
+    assert sb["initial_state_sha256"] == lb["initial_state_sha256"]
+    meta = {"network": network,"seed":seed,"protocol":asdict(cfg),
+            "sb_model_sha256":state_hash(sb["model"]),"lb_model_sha256":state_hash(lb["model"]),
+            "sb_manifest":sb["manifest"],"lb_manifest":lb["manifest"],
+            "statuses":[sb["status"],lb["status"]],
+            "bn_buffers":"linear mean; log-linear variance; nearest integer counter"}
+    folder = OUTPUT_ROOT / "analysis" / f"path_{network}_seed{seed}_{digest(meta)[:12]}"
+    csv_path = folder / "path.csv"
+    if csv_path.exists():
+        return pd.read_csv(csv_path), folder
+    folder.mkdir(parents=True, exist_ok=True)
+    json_write(folder / "manifest.json", meta)
+    model = make_model(network, cfg).double().to(DEVICE).eval()
+    train_loader = make_loader(train, cfg.eval_batch, False, seed + 4000)
+    test_loader = make_loader(test, cfg.eval_batch, False, seed + 5000)
+    # Union explicitly includes endpoints even if a different grid count is chosen.
+    alphas = np.unique(np.r_[np.linspace(-1., 2., cfg.path_points), 0., 1.])
+    rows = []
+    for alpha in alphas:
+        model.load_state_dict(interpolated_state(sb["model"], lb["model"], float(alpha)))
+        tr, te = evaluate(model, train_loader), evaluate(model, test_loader)
+        if not math.isfinite(tr["loss"]) or not math.isfinite(te["loss"]):
+            raise FloatingPointError(f"Nonfinite path evaluation at alpha={alpha}")
+        rows.append({"alpha":float(alpha),"train_loss":tr["loss"],"test_loss":te["loss"],
+                     "train_accuracy":tr["accuracy"],"test_accuracy":te["accuracy"]})
+        print(f"{network} path alpha={alpha:.3f}", end="\r")
+    frame = pd.DataFrame(rows)
+    # Verify endpoints against independent full-data evaluations of their exact states.
+    for alpha, saved in ((0.,sb),(1.,lb)):
+        model.load_state_dict(saved["model"])
+        baseline_tr, baseline_te = evaluate(model, train_loader), evaluate(model, test_loader)
+        row = frame.loc[frame.alpha == alpha].iloc[0]
+        assert np.isclose(row.train_loss, baseline_tr["loss"], rtol=1e-10, atol=1e-10)
+        assert np.isclose(row.test_loss, baseline_te["loss"], rtol=1e-10, atol=1e-10)
+    temp = csv_path.with_suffix(".tmp.csv")
+    frame.to_csv(temp, index=False)
+    os.replace(temp, csv_path)
+    return frame, folder
+
+def plot_parameter_paths(frames):
+    fig, axes = plt.subplots(1, len(frames), figsize=(5.5*len(frames),4), squeeze=False)
+    for ax, (network, frame) in zip(axes.flat, frames.items()):
+        right = ax.twinx()
+        for split, style in (("train","-"),("test","--")):
+            ax.plot(frame.alpha, frame[f"{split}_loss"], style, color="tab:blue", label=split.title())
+            right.plot(frame.alpha, frame[f"{split}_accuracy"], style, color="tab:red")
+        for x in (0,1): ax.axvline(x, color="0.6", lw=0.6)
+        ax.set(title=network, xlabel="α (0 = SB; 1 = LB)", ylabel="Cross-entropy")
+        right.set(ylabel="Accuracy (%)", ylim=(0,100))
+        ax.legend(); ax.tick_params(axis="y", colors="tab:blue")
+        right.tick_params(axis="y", colors="tab:red")
+    fig.tight_layout()
+    return fig
+
+
+Code cell 28
+Cell 28 of 34
+
+if RUN_PATHS:
+    path_frames, path_folders = {}, {}
+    for network in NETWORKS:
+        chosen = path_trial_seed(network, SEEDS, CFG)
+        print(f"Preselected path trial: {network}, seed {chosen}")
+        path_frames[network], path_folders[network] = parameter_path(network, chosen, CFG)
+    fig = plot_parameter_paths(path_frames)
+    collection_id = digest({k: str(v) for k,v in path_folders.items()})[:12]
+    fig.savefig(OUTPUT_ROOT / "analysis" / f"figure3_{collection_id}.png", dpi=180)
+    plt.show()
+
+
+7. Measure sharpness
+Cell 29 of 34
+
+7. Measure sharpness
+Paper Eqs. 3–4, Tables 3–4: find a large loss increase within the permitted parameter box:
+\[
+100\frac{\max_{z\in C_\epsilon}f(\theta+Az)-f(\theta)}{1+f(\theta)},
+\qquad |z_i|\le\epsilon\bigl(|(A^+\theta)_i|+1\bigr).
+\]
+Use the full training set with dropout off and BN buffers frozen. Learned BN parameters are perturbed.
+Parameter	Value	Source / reason
+ε	10⁻³, 5×10⁻⁴	Paper §2.2.2
+Spaces	Full parameters; random 100-dimensional subspace	Paper §2.2.2
+Search	L-BFGS-B, at most 10 iterations	Paper §2.2.2
+Starting point	Seeded random point inside the box	Choice: avoid starting at a nearly zero gradient
+Random basis	Orthonormalized Gaussian columns	Choice: distribution/scaling omitted; generated in blocks to limit memory
+Precision	FP64	Choice: improve numerical optimization stability
+
+
+Choice: one search start, maxcor=10, maxls=20, ftol=1e-12, gtol=1e-8; these solver details are unspecified. The result is the largest feasible loss found, not a guaranteed maximum. This stage is computationally expensive.
+
+
+Code cell 30
+Cell 30 of 34
+
+RUN_SHARPNESS = False
+SHARPNESS_SPACES = ("full", "subspace")
+CFG = replace(
+    CFG,
+    sharpness_eps=(1e-3, 5e-4),
+    subspace_dim=100,
+    lbfgs_maxiter=10,
+)
+
+
+Code cell 31
+Cell 31 of 34
+
+class GaussianOrthonormalBasis:
+    def __init__(self, n, p, seed, block_rows=16384):
+        if not 1 <= p <= n:
+            raise ValueError("subspace dimension must lie in [1,n]")
+        self.n, self.p, self.seed, self.block_rows = n, p, seed, block_rows
+        gram = np.zeros((p,p), dtype=np.float64)
+        for _, _, block in self.blocks():
+            gram += block.T @ block
+        self.R = np.linalg.cholesky(gram).T
+        rinv = solve_triangular(self.R, np.eye(p), lower=False)
+        error = float(np.max(np.abs(rinv.T @ gram @ rinv - np.eye(p))))
+        if error > 1e-8:
+            raise ArithmeticError(f"Basis orthonormality check failed: {error}")
+        self.orthonormality_error = error
+
+    def blocks(self):
+        rng = np.random.default_rng(self.seed)
+        for start in range(0,self.n,self.block_rows):
+            end = min(start+self.block_rows, self.n)
+            yield start, end, rng.standard_normal((end-start,self.p))
+
+    def forward(self, z):
+        coefficient = solve_triangular(self.R, z, lower=False)
+        result = np.empty(self.n, dtype=np.float64)
+        for start, end, block in self.blocks():
+            result[start:end] = block @ coefficient
+        return result
+
+    def transpose(self, vector):
+        result = np.zeros(self.p, dtype=np.float64)
+        for start, end, block in self.blocks():
+            result += block.T @ vector[start:end]
+        return solve_triangular(self.R.T, result, lower=True)
+
+class ParameterVector:
+    def __init__(self, model):
+        self.parameters = list(model.parameters())
+        self.n = sum(p.numel() for p in self.parameters)
+    def get(self):
+        return np.concatenate([p.detach().cpu().numpy().reshape(-1) for p in self.parameters]).astype(np.float64)
+    @torch.no_grad()
+    def set(self, vector):
+        if vector.size != self.n:
+            raise ValueError("Parameter vector length mismatch")
+        offset = 0
+        for parameter in self.parameters:
+            values = vector[offset:offset+parameter.numel()].reshape(tuple(parameter.shape))
+            parameter.copy_(torch.as_tensor(values, dtype=parameter.dtype, device=parameter.device))
+            offset += parameter.numel()
+    def grad(self):
+        return np.concatenate([(p.grad.detach().cpu().numpy().reshape(-1) if p.grad is not None
+                                else np.zeros(p.numel(), dtype=np.float64)) for p in self.parameters])
+
+def loss_and_gradient(model, loader, vectorizer):
+    model.eval()
+    model.zero_grad(set_to_none=True)
+    parameter = next(model.parameters())
+    n, count, value = len(loader.dataset), 0, 0.0
+    for x, y in loader:
+        x = x.to(device=parameter.device, dtype=parameter.dtype)
+        y = y.to(parameter.device)
+        loss = F.cross_entropy(model(x), y, reduction="sum") / n
+        value += float(loss.item())
+        loss.backward()
+        count += len(y)
+    if count != n:
+        raise RuntimeError("Sharpness objective did not cover the complete training set")
+    gradient = vectorizer.grad()
+    if not np.isfinite(value) or not np.isfinite(gradient).all():
+        raise FloatingPointError("Nonfinite sharpness objective/gradient")
+    return value, gradient
+
+def estimate_sharpness(model, train_loader, epsilon, cfg=CFG, basis=None, start_seed=0):
+    # Mutates parameters during search, restores them (and clears gradients) on exit.
+    model.eval()
+    vectorizer = ParameterVector(model)
+    origin = vectorizer.get()
+    baseline = evaluate(model, train_loader)["loss"]
+    coordinates = origin if basis is None else basis.transpose(origin)
+    radius = epsilon * (np.abs(coordinates) + 1.0)
+    rng = np.random.default_rng(start_seed)
+    z0 = rng.uniform(-1.0,1.0,size=len(radius)) * radius
+    best_loss, evaluations, best_coordinates = baseline, 0, np.zeros_like(radius)
+
+    def objective(z):
+        nonlocal best_loss, evaluations, best_coordinates
+        if np.any(np.abs(z) > radius + 1e-12):
+            raise ArithmeticError("Solver supplied an infeasible perturbation")
+        z = np.clip(z, -radius, radius)
+        displacement = z if basis is None else basis.forward(z)
+        vectorizer.set(origin + displacement)
+        value, gradient = loss_and_gradient(model, train_loader, vectorizer)
+        if basis is not None:
+            gradient = basis.transpose(gradient)
+        evaluations += 1
+        if value > best_loss:
+            best_loss, best_coordinates = value, z.copy()
+        return -value, -gradient
+
+    try:
+        solution = minimize(objective, z0, method="L-BFGS-B", jac=True,
+                            bounds=np.column_stack((-radius, radius)),
+                            options={"maxiter":cfg.lbfgs_maxiter,"maxcor":cfg.lbfgs_maxcor,
+                                     "maxls":cfg.lbfgs_maxls,"ftol":cfg.lbfgs_ftol,"gtol":cfg.lbfgs_gtol})
+        witness = best_coordinates if basis is None else basis.forward(best_coordinates)
+        vectorizer.set(origin + witness)
+        witness_loss = evaluate(model, train_loader)["loss"]
+        if not np.isclose(witness_loss,best_loss,rtol=1e-8,atol=1e-10):
+            raise ArithmeticError("Largest observed loss could not be reproduced at its witness")
+        return {"epsilon":epsilon,"space":"full" if basis is None else "subspace",
+                "dimension":len(radius),"baseline_loss":baseline,"max_found_loss":best_loss,
+                "sharpness":100.0*(best_loss-baseline)/(1.0+baseline),
+                "start_seed":start_seed,"iterations":int(solution.nit),"function_evaluations":evaluations,
+                "solver_success":bool(solution.success),"solver_status":int(solution.status),
+                "solver_message":str(solution.message),"witness_max_fraction_of_bound":float(np.max(np.abs(best_coordinates)/radius)),
+                "basis_orthonormality_error":None if basis is None else basis.orthonormality_error}
+    finally:
+        vectorizer.set(origin)
+        model.zero_grad(set_to_none=True)
+
+
+Code cell 32
+Cell 32 of 34
+
+PAPER_SHARPNESS = pd.DataFrame([
+    ("F1","full",1e-3,1.23,0.83,205.14,69.52),
+    ("F1","full",5e-4,0.61,0.27,42.90,17.14),
+    ("C1","full",1e-3,28.58,3.13,707.23,43.04),
+    ("C1","full",5e-4,7.08,0.88,227.31,23.23),
+    ("C2","full",1e-3,8.68,1.32,925.32,38.29),
+    ("C2","full",5e-4,2.07,0.86,175.31,18.28),
+    ("F1","subspace",1e-3,0.11,0.00,9.22,0.56),
+    ("F1","subspace",5e-4,0.05,0.00,9.17,0.14),
+    ("C1","subspace",1e-3,2.18,0.23,137.25,21.60),
+    ("C1","subspace",5e-4,0.71,0.15,29.50,7.48),
+    ("C2","subspace",1e-3,0.95,0.34,25.09,2.61),
+    ("C2","subspace",5e-4,0.31,0.08,5.82,0.52),
+],columns=["network","space","epsilon","paper_SB_mean","paper_SB_sd","paper_LB_mean","paper_LB_sd"])
+
+
+Code cell 33
+Cell 33 of 34
+
+def run_sharpness_suite(cfg=CFG):
+    records = []
+    for network in NETWORKS:
+        network_index = ("F1","C1","C2").index(network)
+        for seed in SEEDS:
+            basis = None
+            for regime in ("SB","LB"):
+                saved, directory, train, _ = saved_trial(network, regime, seed, cfg)
+                model = make_model(network,cfg).double().to(DEVICE).eval()
+                model.load_state_dict(saved["model"])
+                loader = make_loader(train,cfg.eval_batch,False,seed+6000)
+                for space in SHARPNESS_SPACES:
+                    if space not in ("full","subspace"):
+                        raise ValueError(space)
+                    for eps_index, epsilon in enumerate(cfg.sharpness_eps):
+                        # Same random subspace/start rule across regimes, no outcome-based choices.
+                        basis_seed = cfg.analysis_seed + 10000*network_index + seed*100
+                        start_seed = basis_seed + eps_index*10 + (1 if space == "full" else 2)
+                        meta = {"source_manifest":saved["manifest"],"model_sha256":state_hash(saved["model"]),
+                                "status":saved["status"],"space":space,"epsilon":epsilon,
+                                "basis_seed":basis_seed,"start_seed":start_seed,"protocol":asdict(cfg)}
+                        path = directory / "analysis" / f"sharpness_{space}_{epsilon}_{digest(meta)[:12]}.json"
+                        if path.exists():
+                            record = json.loads(path.read_text())["result"]
+                        else:
+                            if space == "subspace" and basis is None:
+                                n = sum(p.numel() for p in model.parameters())
+                                print(f"Constructing block Gaussian basis: {network}, seed={seed}, n={n}")
+                                basis = GaussianOrthonormalBasis(n,cfg.subspace_dim,basis_seed,cfg.basis_block_rows)
+                            estimate = estimate_sharpness(model,loader,epsilon,cfg,
+                                                         basis if space == "subspace" else None,start_seed)
+                            record = {"network":network,"regime":regime,"seed":seed,
+                                      "training_status":saved["status"],**estimate}
+                            json_write(path,{"manifest":meta,"result":record})
+                        records.append(record)
+                        print(f"{network} {regime} seed={seed} {space} ε={epsilon}: "
+                              f"sharpness={record['sharpness']:.4f}, iterations={record['iterations']}, "
+                              f"{record['solver_message']}")
+                del model
+                if DEVICE.type == "cuda": torch.cuda.empty_cache()
+            del basis
+    return pd.DataFrame(records)
+
+def sharpness_summary(frame,cfg=CFG):
+    rows=[]
+    for keys, group in frame.groupby(["network","space","epsilon","regime"]):
+        rows.append(dict(zip(("network","space","epsilon","regime"),keys),
+                         n=len(group),mean=group.sharpness.mean(),sd=group.sharpness.std(ddof=cfg.sd_ddof),
+                         all_converged=bool((group.training_status == "converged").all())))
+    return pd.DataFrame(rows).merge(PAPER_SHARPNESS,on=["network","space","epsilon"])
+
+
+Code cell 34
+Cell 34 of 34
+
+if RUN_SHARPNESS:
+    sharpness_results = run_sharpness_suite(CFG)
+    display(sharpness_summary(sharpness_results, CFG).drop(columns=["all_converged"], errors="ignore"))

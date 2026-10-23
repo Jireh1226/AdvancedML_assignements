@@ -1,0 +1,21 @@
+{
+  "recorded_utc": "2026-10-23T04:53:03.264242+00:00",
+  "selected_run": "Completed earlier seed42_v1 pair only.",
+  "epochs": {
+    "beta4": 100,
+    "beta1": 100
+  },
+  "later_runs_used": false,
+  "notebook_matches_local_phase3_commit": "8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533",
+  "provenance_limit": "Submitted IDE-built notebook and models preceded the later shared chat.",
+  "artifact_sha256": {
+    "beta_vae_learning_basic_visual_concepts.ipynb": "220fbc1c40eef1bfce64d67eb93d5f8ab7f99156edb42a264dcc40637ad33a3a",
+    "beta_vae_learning_basic_visual_concepts_report.pdf": "123fde210ccf76367c04f8415bd4eb655a45b2f4d823ff84363987fd7cb4b7fc",
+    "results_beta_vae/seed42_v1/figure7ab.pdf": "354ce9566dfaa224f1e501e3f77541765a90b85f85d4e311a2a475b27cf44a63",
+    "results_beta_vae/seed42_v1/metrics.json": "0bce77b2fc30895e8a128857c0a67a9a0ccaffa046426688a4699badf655f4aa",
+    "report_assets/figure7ab.pdf": "354ce9566dfaa224f1e501e3f77541765a90b85f85d4e311a2a475b27cf44a63"
+  },
+  "report_source_sha256": "dba1b7f1248c0230d4fa4b311974f97da0ea981c55a757cadf95ceadb837cbad",
+  "report_source_published": false,
+  "report_build": "Two successful pdflatex passes; compiled text and comparison page checked."
+}

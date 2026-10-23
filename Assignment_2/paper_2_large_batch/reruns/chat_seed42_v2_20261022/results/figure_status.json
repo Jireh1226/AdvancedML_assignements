@@ -1,0 +1,19 @@
+{
+  "seed": 42,
+  "trials": 1,
+  "statuses": {
+    "F1": [
+      "converged",
+      "converged"
+    ],
+    "C1": [
+      "converged",
+      "converged"
+    ],
+    "C2": [
+      "converged",
+      "converged"
+    ]
+  },
+  "provisional": false
+}

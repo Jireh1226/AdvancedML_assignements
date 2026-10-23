@@ -1,0 +1,54 @@
+{
+  "version": "gpt-chat-seed42-v2",
+  "training_base": {
+    "file": "gpt_training_original.txt",
+    "sha256": "17d3124888718b6258671e75cb16f759daeb231bae7d690a92e821ef8f25fa69",
+    "retained_original_cells": [
+      4,
+      5,
+      6,
+      9,
+      13,
+      14,
+      15,
+      18,
+      19,
+      20,
+      27,
+      28
+    ]
+  },
+  "latest_received_attachment": {
+    "file": "gpt_plot_only_received.txt",
+    "sha256": "c0eb3b2bcdc0156dbda27a033f47ab5f40bbbe796884ca8b54f458d8dac8a554",
+    "scope": "Plots existing values only; no training implementation."
+  },
+  "user_confirmed_earlier_training_base": true,
+  "notebook_sha256": "d46fa810c6fc86be090ddd1dd8737b7b404c8a51631c0a574de0365c9a77d697",
+  "code_cells_sha256": "bb39f47bc2a4f0037f6271c3f86147521a701c6b6cd38a9525ff76cb459d4b8b",
+  "paper_sha256": "fbb3d2d981314adc7e5e3df7ec2c067f03d769a2a418c4d2580fa456cc5548d6",
+  "corrections_applied_by": "Codex/IDE assistant",
+  "prior_author_source_access_disclosed": true,
+  "author_code_used_in_this_revision": false,
+  "old_checkpoints_reused": false,
+  "current_submission_replaced": false,
+  "seed": 42,
+  "trials_per_network": 1,
+  "training_runs": 6,
+  "preserved_choices": [
+    "GPT model definitions and asymmetric SAME padding",
+    "Adam 0.001 with betas 0.9/0.999, eps 1e-8 and no weight decay",
+    "SB256, LB6000/5000; drop incomplete training batches",
+    "Evaluate every epoch; minimum100, patience20, tolerance1e-4, maximum300",
+    "Linear BN means and geometric BN variances; not training-data recalibration"
+  ],
+  "changes": [
+    "One seed42 and separate version/output paths",
+    "Remove unassigned sharpness searches and five-trial summaries",
+    "Compute code hash from actual notebook code cells instead of a fixed string",
+    "Cache exactly transformed images and batch tensor indexing while retaining DataLoader sampling and RNG state",
+    "Use FP32 path evaluation and61 points instead of FP64 and121",
+    "Permit but label budget-exhausted analyses as provisional",
+    "Save endpoint measurements and use paper blue/red plot colours"
+  ]
+}

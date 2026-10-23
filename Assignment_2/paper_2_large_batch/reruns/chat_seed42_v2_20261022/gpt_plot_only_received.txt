@@ -1,0 +1,152 @@
+Figure 3: F1, C1 and C2
+Single-seed reproduction — seed 42. Three SB/LB pairs, not five trials.
+
+This revision reuses the existing interpolation results. It does not retrain models, change their architecture, or replace their BN evaluation convention. Only the three Figure 3 panels are in scope.
+
+The earlier executed notebook and its six checkpoints were not available when preparing this revision. Their training implementation remains unverified here. Provide the saved results below; existing files are read only, and new plots get a separate output folder.
+
+
+1. Choose the existing files
+Cell 2 of 11
+
+1. Choose the existing files
+Set the three result paths and the recorded accuracy unit ("percent" or "fraction"). CSV, JSON records/columns, and NPZ arrays are supported. Optional checkpoint, source-notebook, and metadata paths preserve their attribution; leave unavailable evidence as None.
+
+
+Code cell 3
+Cell 3 of 11
+
+from pathlib import Path
+import hashlib, types
+import matplotlib.pyplot as plt
+
+SEED = 42
+NETWORKS = ("F1", "C1", "C2")
+OUTPUT_ROOT = Path("figure3_seed42_analysis")
+
+RESULT_FILES = {"F1": None, "C1": None, "C2": None}
+ACCURACY_UNIT = None  # set to the saved result's unit: "percent" or "fraction"
+COLUMN_MAP = {
+    "alpha": "alpha",
+    "train_loss": "train_loss", "test_loss": "test_loss",
+    "train_accuracy": "train_accuracy", "test_accuracy": "test_accuracy",
+}
+
+# Optional evidence; do not assign this revision as the historical training source.
+ORIGINAL_EXECUTED_NOTEBOOK = None
+CHECKPOINT_FILES = {name: {"SB": None, "LB": None} for name in NETWORKS}
+TRAINING_METADATA_FILES = {name: {"SB": None, "LB": None} for name in NETWORKS}
+RESULT_METADATA_FILES = {name: None for name in NETWORKS}
+
+
+2. Load and check the saved curves
+Cell 4 of 11
+
+2. Load and check the saved curves
+Paper §2.2.1: evaluate train/test cross-entropy and accuracy along
+\[
+\theta(\alpha)=(1-\alpha)\theta_{SB}+\alpha\theta_{LB},\qquad \alpha\in[-1,2].
+\]
+Confirm the saved convention: α=0 is SB and α=1 is LB. The loader checks the columns, finite values, accuracy units, range, and endpoints. It keeps the recorded points and values; it does not create a new 121-point grid, interpolate missing observations, or reevaluate in FP64.
+
+
+Code cell 5
+Cell 5 of 11
+
+CONFIRM_SAVED_ALPHA_CONVENTION = False  # True after checking the original results/code
+PLOT_SAVED_RESULTS = False
+
+
+Code cell 6
+Cell 6 of 11
+
+WORKFLOW_SOURCE = 'import hashlib, json, platform, uuid\nfrom pathlib import Path\nfrom datetime import datetime, timezone\nimport numpy as np\nimport pandas as pd\nimport matplotlib\nimport matplotlib.pyplot as plt\n\nNETWORKS = ("F1", "C1", "C2")\nFIELDS = ("alpha", "train_loss", "test_loss", "train_accuracy", "test_accuracy")\n\n\ndef file_evidence(path, *, read_json=False):\n    if path is None:\n        return None\n    path = Path(path).expanduser().resolve()\n    if not path.is_file():\n        raise FileNotFoundError(f"Evidence file does not exist: {path}")\n    digest = hashlib.sha256()\n    with path.open("rb") as stream:\n        for chunk in iter(lambda: stream.read(1024 * 1024), b""):\n            digest.update(chunk)\n    evidence = {"path": str(path), "sha256": digest.hexdigest(), "size_bytes": path.stat().st_size}\n    if read_json:\n        evidence["recorded_contents"] = json.loads(path.read_text())\n    return evidence\n\n\ndef check_recorded_identity(evidence, network, seed, regime=None, primary=True):\n    if evidence is None:\n        return\n    raw = evidence["recorded_contents"]\n    if not isinstance(raw, dict):\n        return\n    candidates = [raw] + [raw[key] for key in ("manifest", "config", "protocol")\n                          if isinstance(raw.get(key), dict)]\n    for record in candidates:\n        for field, expected in (("network", network), ("seed", seed), ("regime", regime)):\n            if expected is not None and field in record and record[field] != expected:\n                raise ValueError(f"Recorded {field}={record[field]!r} conflicts with {expected!r}: {evidence[\'path\']}")\n        if primary and record.get("analysis_kind") == "bn_diagnostic":\n            raise ValueError("A BN diagnostic cannot be silently presented as the original reproduction")\n\n\ndef read_curve(path, columns, accuracy_unit):\n    if path is None:\n        raise ValueError("Set each network\'s RESULT_FILES entry to its saved interpolation file")\n    if accuracy_unit not in ("percent", "fraction"):\n        raise ValueError("Specify the recorded accuracy unit; it is never guessed from the values")\n    if set(columns) != set(FIELDS) or len(set(columns.values())) != len(FIELDS):\n        raise ValueError(f"COLUMN_MAP must map the five unique fields: {FIELDS}")\n    evidence = file_evidence(path)\n    path = Path(evidence["path"])\n    if path.suffix.lower() == ".csv":\n        raw = pd.read_csv(path)\n    elif path.suffix.lower() == ".json":\n        raw = pd.DataFrame(json.loads(path.read_text()))\n    elif path.suffix.lower() == ".npz":\n        with np.load(path, allow_pickle=False) as arrays:\n            raw = pd.DataFrame({name: arrays[name] for name in columns.values()})\n    else:\n        raise ValueError("Use CSV, JSON records/columns, or an NPZ with numeric arrays")\n    missing = set(columns.values()) - set(raw.columns)\n    if missing:\n        raise ValueError(f"Missing result columns: {sorted(missing)}; update COLUMN_MAP")\n    frame = raw[[columns[key] for key in FIELDS]].copy()\n    frame.columns = list(FIELDS)\n    frame = frame.apply(pd.to_numeric, errors="raise")\n    if len(frame) < 4 or not np.isfinite(frame.to_numpy()).all():\n        raise ValueError("Saved curves must contain finite values and at least the range endpoints and the two solutions")\n    if frame.alpha.duplicated().any():\n        raise ValueError("Duplicate alpha values must be resolved in the original result, not averaged here")\n    frame = frame.sort_values("alpha", kind="stable").reset_index(drop=True)\n    tolerance = 1e-8\n    if not np.isclose(frame.alpha.min(), -1.0, rtol=0, atol=tolerance) or not np.isclose(frame.alpha.max(), 2.0, rtol=0, atol=tolerance):\n        raise ValueError("Figure 3 requires the saved range [-1,2]; this notebook will not invent missing points")\n    for endpoint in (0., 1.):\n        if not np.isclose(frame.alpha.to_numpy(), endpoint, rtol=0, atol=tolerance).any():\n            raise ValueError(f"Saved results do not include the alpha={endpoint:g} endpoint")\n    if (frame[["train_loss", "test_loss"]] < 0).any().any():\n        raise ValueError("Cross-entropy values must be nonnegative")\n    upper = 100. if accuracy_unit == "percent" else 1.\n    if ((frame[["train_accuracy", "test_accuracy"]] < 0) |\n        (frame[["train_accuracy", "test_accuracy"]] > upper)).any().any():\n        raise ValueError("Accuracy values conflict with the declared unit")\n    # Unit conversion is for displaying percentage accuracy, not model reevaluation.\n    if accuracy_unit == "fraction":\n        frame[["train_accuracy", "test_accuracy"]] *= 100.\n    evidence["saved_accuracy_unit"] = accuracy_unit\n    evidence["display_accuracy_unit"] = "percent"\n    evidence["alpha_grid"] = frame.alpha.tolist()\n    return frame, evidence\n\n\ndef plot_curves(frames, seed, analysis_kind):\n    fig, axes = plt.subplots(1, 3, figsize=(16.5, 4.4))\n    for ax, network in zip(axes, NETWORKS):\n        frame = frames[network]\n        accuracy_axis = ax.twinx()\n        for split, style in (("train", "-"), ("test", "--")):\n            ax.plot(frame.alpha, frame[f"{split}_loss"], style, color="tab:blue", label=split.title())\n            accuracy_axis.plot(frame.alpha, frame[f"{split}_accuracy"], style, color="tab:red")\n        ax.axvline(0, color="0.7", lw=0.6)\n        ax.axvline(1, color="0.7", lw=0.6)\n        ax.set(title=network, xlabel="α (0 = SB; 1 = LB)", ylabel="Cross-entropy", xlim=(-1,2))\n        accuracy_axis.set(ylabel="Accuracy (%)", ylim=(0,100))\n        ax.tick_params(axis="y", colors="tab:blue")\n        accuracy_axis.tick_params(axis="y", colors="tab:red")\n        ax.legend()\n    title = f"Single-seed reproduction - seed {seed}"\n    if analysis_kind == "bn_diagnostic":\n        title = f"Separate BN diagnostic - single seed {seed}"\n    fig.suptitle(title)\n    fig.tight_layout()\n    return fig\n\n\ndef write_new_json(path, value):\n    with Path(path).open("x") as stream:\n        json.dump(value, stream, indent=2, allow_nan=False)\n\n\ndef run(result_files, accuracy_unit, columns, output_root, seed,\n        alpha_convention_confirmed, checkpoint_files=None, training_metadata_files=None,\n        result_metadata_files=None, original_notebook=None,\n        analysis_kind="original_reproduction", diagnostic_description=""):\n    if set(result_files) != set(NETWORKS):\n        raise ValueError("Provide exactly F1, C1 and C2")\n    if seed != 42:\n        raise ValueError("This notebook describes the existing seed-42 experiment; a different experiment needs its own attribution")\n    if not alpha_convention_confirmed:\n        raise ValueError("Confirm the original result\'s alpha=0 SB / alpha=1 LB convention before plotting")\n    if analysis_kind not in ("original_reproduction", "bn_diagnostic"):\n        raise ValueError("Unknown analysis kind")\n    if analysis_kind == "bn_diagnostic" and not diagnostic_description.strip():\n        raise ValueError("Describe the separate BN diagnostic, including its calibration/evaluation convention")\n    checkpoint_files = checkpoint_files or {}\n    training_metadata_files = training_metadata_files or {}\n    result_metadata_files = result_metadata_files or {}\n    frames, attribution = {}, {}\n    for network in NETWORKS:\n        unit = accuracy_unit[network] if isinstance(accuracy_unit, dict) else accuracy_unit\n        frames[network], result_evidence = read_curve(result_files[network], columns, unit)\n        result_metadata = file_evidence(result_metadata_files.get(network), read_json=True)\n        check_recorded_identity(result_metadata, network, seed,\n                                primary=analysis_kind == "original_reproduction")\n        training_records = {}\n        for regime in ("SB", "LB"):\n            metadata = file_evidence(training_metadata_files.get(network, {}).get(regime), read_json=True)\n            check_recorded_identity(metadata, network, seed, regime)\n            training_records[regime] = {\n                "checkpoint_file": file_evidence(checkpoint_files.get(network, {}).get(regime)),\n                "original_metadata": metadata,\n            }\n        attribution[network] = {\n            "saved_interpolation": result_evidence,\n            "original_interpolation_metadata": result_metadata,\n            "historical_training": training_records,\n            "training_code_identity_verified_here": False,\n            "original_architecture_and_bn_convention": "preserved in saved values; not reconstructed or inferred here",\n        }\n    source_bytes = SOURCE_SNAPSHOT.encode("utf-8")\n    source_hash = hashlib.sha256(source_bytes).hexdigest()\n    manifest = {\n        "schema": 1, "scope": "Figure 3 F1/C1/C2 only",\n        "experiment_label": "single-seed reproduction" if analysis_kind == "original_reproduction" else "separate BN diagnostic",\n        "reported_seed": seed, "seed_evidence": "user report; checked against supplied metadata when present",\n        "reported_trials_per_network": 1,\n        "analysis_kind": analysis_kind, "diagnostic_description": diagnostic_description or None,\n        "analysis": {\n            "operation": "plot existing numeric results; no training or checkpoint reevaluation",\n            "executed_workflow_sha256": source_hash,\n            "executed_workflow_source": "analysis_source.py",\n            "columns": columns, "alpha_convention_confirmed_by_user": alpha_convention_confirmed,\n            "python": platform.python_version(), "numpy": np.__version__,\n            "pandas": pd.__version__, "matplotlib": matplotlib.__version__,\n            "timestamp_utc": datetime.now(timezone.utc).isoformat(),\n        },\n        "supplied_historical_notebook_file": file_evidence(original_notebook),\n        "historical_notebook_caveat": "Its file hash identifies the supplied file now, not proof that these exact bytes trained the models",\n        "source_runs": attribution,\n    }\n    folder = Path(output_root) / f"{analysis_kind}_seed{seed}_{uuid.uuid4().hex[:12]}"\n    folder.mkdir(parents=True, exist_ok=False)\n    with (folder / "analysis_source.py").open("x") as stream:\n        stream.write(SOURCE_SNAPSHOT)\n    write_new_json(folder / "analysis_manifest.json", manifest)\n    for network, frame in frames.items():\n        with (folder / f"{network}_display_values.csv").open("x") as stream:\n            frame.to_csv(stream, index=False)\n    fig = plot_curves(frames, seed, analysis_kind)\n    fig.savefig(folder / "figure3.png", dpi=180)\n    return fig, folder, manifest\n'
+
+
+def fresh_workflow(source):
+    # Hash and execute the same source bytes in a new namespace for every analysis.
+    fingerprint = hashlib.sha256(source.encode("utf-8")).hexdigest()
+    module = types.ModuleType("figure3_saved_results")
+    module.__dict__["SOURCE_SNAPSHOT"] = source
+    exec(compile(source, f"<figure3-analysis-{fingerprint}>", "exec"), module.__dict__)
+    return module
+
+
+3. Produce the three Figure 3 panels
+Cell 7 of 11
+
+3. Produce the three Figure 3 panels
+Set PLOT_SAVED_RESULTS=True after supplying the files and checking the alpha convention. The plot is labelled single-seed reproduction, seed 42. No averages or uncertainty across trials are claimed.
+
+Each output folder records hashes of the input files, preserves supplied historical metadata verbatim, and saves the exact workflow source executed for this analysis. That source is hashed at runtime in a fresh namespace. This analysis identity is never assigned to the old training runs; missing historical evidence remains unverified.
+
+
+Code cell 8
+Cell 8 of 11
+
+if PLOT_SAVED_RESULTS:
+    workflow = fresh_workflow(WORKFLOW_SOURCE)
+    figure, result_folder, analysis_record = workflow.run(
+        RESULT_FILES, ACCURACY_UNIT, COLUMN_MAP, OUTPUT_ROOT, SEED,
+        CONFIRM_SAVED_ALPHA_CONVENTION,
+        checkpoint_files=CHECKPOINT_FILES,
+        training_metadata_files=TRAINING_METADATA_FILES,
+        result_metadata_files=RESULT_METADATA_FILES,
+        original_notebook=ORIGINAL_EXECUTED_NOTEBOOK,
+    )
+    print(f"Saved figure and analysis record: {result_folder}")
+    plt.show()
+
+
+4. Checkpoints and optional BN diagnostics
+Cell 9 of 11
+
+4. Checkpoints and optional BN diagnostics
+Checkpoint reevaluation is not enabled in this revision: the original executed architecture and evaluation code must first be supplied. There is no fallback to the later reconstructed C1 architecture or log-linear BN interpolation. Plotting existing results above does not load or modify model weights.
+
+Before enabling reevaluation, verify exact layer order, symmetric C1 padding and pooling, state-dict keys/shapes, preprocessing, loss reduction, precision, BN behavior, and endpoint metrics against the saved results. Use the original grid and convention first. A different convention is a separate analysis, not a correction to historical results.
+
+Optional BN diagnostics would use checkpoint copies and training images, without weight updates. Compare preselected alpha values, including both endpoints and extrapolation; document calibration data, batching/statistics procedure, and any endpoint changes. Do not select a method by resemblance to the paper. The optional cell below only plots already computed diagnostic results in a separate folder and labels them accordingly.
+
+
+Code cell 10
+Cell 10 of 11
+
+PLOT_BN_DIAGNOSTIC = False
+DIAGNOSTIC_RESULT_FILES = {"F1": None, "C1": None, "C2": None}
+DIAGNOSTIC_METADATA_FILES = {"F1": None, "C1": None, "C2": None}
+DIAGNOSTIC_ACCURACY_UNIT = None
+DIAGNOSTIC_DESCRIPTION = ""  # record the actual BN/calibration convention, not a recommendation
+
+# A diagnostic may use fewer alpha values, but this plotting cell still expects [-1,2] and both endpoints.
+if PLOT_BN_DIAGNOSTIC:
+    workflow = fresh_workflow(WORKFLOW_SOURCE)
+    figure, diagnostic_folder, diagnostic_record = workflow.run(
+        DIAGNOSTIC_RESULT_FILES, DIAGNOSTIC_ACCURACY_UNIT, COLUMN_MAP,
+        OUTPUT_ROOT / "bn_diagnostics", SEED,
+        CONFIRM_SAVED_ALPHA_CONVENTION,
+        checkpoint_files=CHECKPOINT_FILES,
+        training_metadata_files=TRAINING_METADATA_FILES,
+        result_metadata_files=DIAGNOSTIC_METADATA_FILES,
+        original_notebook=ORIGINAL_EXECUTED_NOTEBOOK,
+        analysis_kind="bn_diagnostic",
+        diagnostic_description=DIAGNOSTIC_DESCRIPTION,
+    )
+    print(f"Saved separate diagnostic: {diagnostic_folder}")
+    plt.show()
+
+
+5. Paper settings and assumptions
+Cell 11 of 11
+
+5. Paper settings and assumptions
+Setting	Paper	Treatment of existing results
+Networks	F1/C1/C2 widths and kernels in B.1, B.3, B.4	Preserve the executed implementation; exact padding/alignment and BN placement are implementation assumptions. C1 symmetric padding is user-reported, not independently verified here.
+Training	Adam; SB 256; LB 10% of training data (§2.2)	Preserve recorded settings. Learning rate, Adam constants, initialization scale, pixel scaling, and remainder handling are not fully specified; their historical values must come from the old run.
+Stopping	Until loss ceased improving, without a budget limit (§2.2)	Patience/tolerance are implementation assumptions. Budget exhaustion is not evidence of a plateau; use the old history, not a new label.
+BN along the path	Not specified (§2.2.1)	Preserve the original evaluation convention; alternatives remain separate diagnostics.
+Precision and grid	Alpha range [-1,2]; no required dtype or point count (§2.2.1)	Reuse saved points and values. No automatic FP64 conversion or grid densification.
+Repetitions	Five trials; one randomly selected pair for Figure 3 (§2.2–2.2.1)	Existing experiment: one reported seed (42), three pairs. This is not a five-trial reproduction.
+
+
+Source: supplied Keskar et al. paper only. No authors' implementation or other reproduction was consulted. No numerical results are embedded or fabricated in this revision.

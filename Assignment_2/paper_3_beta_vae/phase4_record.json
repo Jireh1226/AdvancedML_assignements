@@ -1,0 +1,29 @@
+{
+  "recorded_utc": "2026-10-23T04:53:03.264242+00:00",
+  "resources_checked_local_date": "2026-10-22",
+  "earlier_phase3_commit": "8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533",
+  "earlier_phase3_commit_is_local_snapshot": true,
+  "submitted_notebook": "beta_vae_learning_basic_visual_concepts.ipynb",
+  "submitted_notebook_sha256": "220fbc1c40eef1bfce64d67eb93d5f8ab7f99156edb42a264dcc40637ad33a3a",
+  "notebook_matches_phase3_snapshot": true,
+  "checked_resources": [
+    {
+      "url": "https://matthey.me/publication/beta_vae/",
+      "observation": "Author publication page links the paper and official dataset; no Figure 7 training implementation identified."
+    },
+    {
+      "url": "https://github.com/google-deepmind/dsprites-dataset",
+      "observation": "Dataset listing and README inspected. Images, metadata and reloading example are provided. No VAE trainer identified; reloading notebook not opened."
+    }
+  ],
+  "scope_limit": "No author implementation was identified in these resources. This does not establish that none exists elsewhere.",
+  "training_implementation_compared": false,
+  "third_party_training_implementation_opened_or_copied": false,
+  "original_data_access": "Official dataset archive only; publication page and dataset listing checked after the earlier Phase 3 snapshot.",
+  "unresolved_settings": [
+    "batch size",
+    "initialization",
+    "Adagrad accumulator",
+    "stopping rule"
+  ]
+}

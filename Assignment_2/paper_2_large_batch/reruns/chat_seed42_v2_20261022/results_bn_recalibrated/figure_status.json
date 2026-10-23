@@ -1,0 +1,22 @@
+{
+  "seed": 42,
+  "trials": 1,
+  "statuses": {
+    "F1": [
+      "converged",
+      "converged"
+    ],
+    "C1": [
+      "converged",
+      "converged"
+    ],
+    "C2": [
+      "converged",
+      "converged"
+    ]
+  },
+  "training_performed_for_correction": false,
+  "bn_protocol": "training-only recalibration at every alpha, including endpoints",
+  "analysis_implementation_sha256": "f058e10e30f9a025383c7a1c3d6539d0f9d9aa0e802d16f6a41a6739a57ca4f6",
+  "checkpoint_stopping_rule_is_not_convergence_proof": true
+}

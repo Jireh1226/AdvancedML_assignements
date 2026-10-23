@@ -1,0 +1,12 @@
+{
+  "state": "complete",
+  "pid": 2751852,
+  "started_utc": "2026-10-23T02:57:31.576347+00:00",
+  "updated_utc": "2026-10-23T04:02:45.923146+00:00",
+  "elapsed_seconds": 3914.346803592518,
+  "notebook": "on_large_batch_training_chat_seed42_v2.ipynb",
+  "gpu": "0",
+  "seed": 42,
+  "training_runs": 6,
+  "executed_notebook": "on_large_batch_training_chat_seed42_v2.executed.ipynb"
+}

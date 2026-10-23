@@ -1,0 +1,20 @@
+{
+  "state": "complete",
+  "started_utc": "2026-10-23T04:27:07.833383+00:00",
+  "updated_utc": "2026-10-23T04:32:14.763579+00:00",
+  "elapsed_seconds": 306.9302130378783,
+  "training_performed": false,
+  "executed_notebook": "on_large_batch_training_chat_seed42_v2_bn_recalibrated.executed.ipynb",
+  "original_artifacts_sha256": {
+    "results/C1_LB_seed42_b680f8fa1cdf/last.pt": "5f2cbc9a182c75071d3f655a80dc53ce209cd07b0a837b6493e71ea134008593",
+    "results/C1_SB_seed42_509570b7933c/last.pt": "2e266fc30b4d0167c0e9b192d91ea31d9dae1f3b548f79478f97f3563941aae7",
+    "results/C2_LB_seed42_2ae0c51d70f0/last.pt": "6fdf0a9846e91bf8d6e0d8281ec1c15babdd6891c2725a06022272cb5b7e8b27",
+    "results/C2_SB_seed42_a971d176c038/last.pt": "f399d470565624a58caa422910952ee2928f36aae8de735125235fa40df01859",
+    "results/F1_LB_seed42_99bbf7e92fed/last.pt": "f1af04a9794ba4d5acac253e864801b150e34d01d789e125f735cab0c44c83ec",
+    "results/F1_SB_seed42_28f1b9732aee/last.pt": "bb91564d4d4ae7ee993dcf1ae7901ff77571ad2e9421b5745eff991aca442ce7",
+    "on_large_batch_training_chat_seed42_v2.ipynb": "d46fa810c6fc86be090ddd1dd8737b7b404c8a51631c0a574de0365c9a77d697",
+    "on_large_batch_training_chat_seed42_v2.executed.ipynb": "582cff82fd9cc1d882a7a978b5cac055c6be81b632d37b954aa94e3e5ebcb80e",
+    "results/figure3_chat_seed42_v2.png": "c6b8b93ab4de2d3118add33ffa765a37d085eeaecba8707702eb8979b5c73c57",
+    "results/endpoint_metrics.json": "2d233b6906a1abd1bb5763778d851072a9edc4bb6501bb912fd86f27e9c0fdca"
+  }
+}

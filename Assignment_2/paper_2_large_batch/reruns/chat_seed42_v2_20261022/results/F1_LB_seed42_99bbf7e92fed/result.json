@@ -1,0 +1,20 @@
+{
+  "network": "F1",
+  "regime": "LB",
+  "seed": 42,
+  "status": "converged",
+  "completed_epoch": 100,
+  "global_step": 1000,
+  "initial_state_sha256": "b38de87abc5b77f91d16d59589fae6bf9a0cb5d46c54572dc1f1781435e293b8",
+  "train": {
+    "loss": 2.5432844335834186e-05,
+    "accuracy": 100.0,
+    "n": 60000
+  },
+  "test": {
+    "loss": 0.07993571234668488,
+    "accuracy": 98.17,
+    "n": 10000
+  },
+  "checkpoint_model_sha256": "9898139b733990d6d800cc387fe1b77028a21b7dd4c8d394249af0aea2cfaef7"
+}

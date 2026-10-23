@@ -1,0 +1,75 @@
+{
+  "status": "completed",
+  "config": {
+    "implementation": "higgins-figure7-v1",
+    "beta": 1.0,
+    "seed": 42,
+    "epochs": 100,
+    "batch_size": 256,
+    "latent_size": 10,
+    "optimizer": "Adagrad",
+    "lr": 0.01,
+    "lr_decay": 0,
+    "initial_accumulator_value": 0.1,
+    "eps": 1e-10,
+    "weight_decay": 0,
+    "encoder": [
+      4096,
+      1200,
+      1200
+    ],
+    "decoder": [
+      10,
+      1200,
+      1200,
+      1200,
+      4096
+    ],
+    "encoder_activation": "relu",
+    "decoder_hidden_activation": "tanh",
+    "observation": "bernoulli_logits",
+    "initialization": "xavier_uniform_bias_zero",
+    "loss": "mean_examples(sum_pixels_BCE_plus_beta_sum_latents_KL)",
+    "training_count": 737280,
+    "dataset": {
+      "dataset": "dSprites",
+      "url": "https://raw.githubusercontent.com/google-deepmind/dsprites-dataset/master/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz",
+      "archive_sha256": "857dc001287e8efa226e0025fac6b29e5745c621b380b0d3363e4e33f4e28fa2",
+      "images": 737280,
+      "shape": [
+        64,
+        64
+      ],
+      "factor_sizes": [
+        1,
+        3,
+        6,
+        40,
+        32,
+        32
+      ],
+      "access": "Dataset archive only; no repository code or README accessed."
+    },
+    "environment": {
+      "torch": "2.6.0+cu124",
+      "torchvision": "0.21.0+cu124",
+      "numpy": "2.2.6",
+      "device": "cuda",
+      "precision": "float32_no_tf32"
+    }
+  },
+  "beta": 1.0,
+  "epochs": 100,
+  "steps": 288000,
+  "last_epoch": {
+    "epoch": 100,
+    "steps": 288000,
+    "reconstruction": 36.09083404408561,
+    "kl": 17.602613714668486,
+    "objective": 53.6934477587541,
+    "seconds": 5.563705671578646
+  },
+  "initial_digest": "d07afa19b3d1738a9ce3b55ac89a2014b45194cb35f254a5da39c15265e0c4b4",
+  "parameters": 14196516,
+  "directory": "/array/katebej/assignment2_generalization_20261022/results_beta_vae/seed42_v1/beta1_seed42"
+}

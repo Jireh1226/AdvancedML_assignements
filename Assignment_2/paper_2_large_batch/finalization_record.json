@@ -1,0 +1,34 @@
+{
+  "recorded_utc": "2026-10-23T04:53:03.264242+00:00",
+  "selected_run": "Fresh chat-derived six-model seed-42 run, with training-only BN recalibration.",
+  "earlier_run_role": "Historical comparison only; no longer supplies reproduced report panels.",
+  "training_performed_for_bn_correction": false,
+  "points": 183,
+  "test_accuracy_SB_LB_percent": {
+    "F1": [
+      98.52,
+      98.2
+    ],
+    "C1": [
+      71.24,
+      66.68
+    ],
+    "C2": [
+      85.98,
+      79.65
+    ]
+  },
+  "provenance_limit": "Chat-derived code with IDE execution and corrections. Author code was already inspected before the rerun.",
+  "artifact_sha256": {
+    "on_large_batch_training_for_deep_learning.pdf": "5ef3c7dbe7efe7a9134df18b8dbecb5f9e37d30295bf1a3515cc71814bae44a5",
+    "reruns/chat_seed42_v2_20261022/on_large_batch_training_chat_seed42_v2_bn_recalibrated.executed.ipynb": "b4bb06ae10af61b11767beaaf44f53760fab3752dcdf6c0d680648dafc1ce7ea",
+    "reruns/chat_seed42_v2_20261022/on_large_batch_training_chat_seed42_v2_bn_recalibrated.ipynb": "41ab9f8af5269e4a2091b247fea8345fce24a3b10a6604393989522293238602",
+    "reruns/chat_seed42_v2_20261022/on_large_batch_training_chat_seed42_v2.ipynb": "d46fa810c6fc86be090ddd1dd8737b7b404c8a51631c0a574de0365c9a77d697",
+    "reruns/chat_seed42_v2_20261022/results_bn_recalibrated/figure3_chat_seed42_v2_bn_recalibrated.pdf": "3b18d85b2273922fc825df29cea05831aeefce07ed6467bb03b596c4debcfba4",
+    "reruns/chat_seed42_v2_20261022/results_bn_recalibrated/endpoint_metrics.json": "aff5697030b973e021d7ed20be989a5facffd4103b7042b0b45dd6bde54cdcc4",
+    "report_assets/panel_sources.json": "8b2b97e31953d08df1dd39e5ca4bae5dd5e90f6d322563ad748e71dfd96ba2cb"
+  },
+  "report_source_sha256": "5c08fcf242efaf1cd823df681f3a5001294f43170a8be1b90840b7d91446f4aa",
+  "report_source_published": false,
+  "report_build": "Two successful pdflatex passes; compiled text and comparison page checked."
+}

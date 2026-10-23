@@ -1,0 +1,57 @@
+{
+  "architecture": [
+    {
+      "network": "F1",
+      "parameters": 1462794,
+      "conv_layers": 0,
+      "linear_layers": 6,
+      "dropout_layers": 0
+    },
+    {
+      "network": "C1",
+      "parameters": 283274,
+      "conv_layers": 2,
+      "linear_layers": 3,
+      "dropout_layers": 2
+    },
+    {
+      "network": "C2",
+      "parameters": 14991946,
+      "conv_layers": 13,
+      "linear_layers": 2,
+      "dropout_layers": 1
+    }
+  ],
+  "cached_loader_matches_batch_values_order_remainder_and_rng": true,
+  "cached_training_and_exact_resume_match_reference": true,
+  "path_endpoints_and_positive_extrapolated_variances": true,
+  "real_datasets": [
+    {
+      "dataset": "MNIST",
+      "hashes": {
+        "train": "d18cfd466eb143ac1097fde604dba9eec4116885869d04cc648b510949f9e88c",
+        "test": "a0863a96c44e5666edbb30c4071ee79ca0514c621e6349c5967fc78e7305c891"
+      },
+      "train_n": 60000,
+      "test_n": 10000
+    },
+    {
+      "dataset": "CIFAR10",
+      "hashes": {
+        "train": "67e12c2a5906880a4fe5595fe6d768185ad7ca587f35d3a7ece3c3b8b85035d2",
+        "test": "e54a434ec35094516eacbaac0f2f9550358d985e9d1f71b47d41d333c15ba304"
+      },
+      "train_n": 50000,
+      "test_n": 10000
+    }
+  ],
+  "dataset_cache_transform_checks": true,
+  "c2_full_batch_pilot": {
+    "examples": 5000,
+    "seconds": 2.109718896448612,
+    "loss": 3.147432804107666,
+    "peak_allocated_gib": 39.56002712249756
+  },
+  "training_results_created": false,
+  "passed": true
+}

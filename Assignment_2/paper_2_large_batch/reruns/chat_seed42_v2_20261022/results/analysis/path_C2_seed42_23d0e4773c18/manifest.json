@@ -1,0 +1,151 @@
+{
+  "network": "C2",
+  "seed": 42,
+  "protocol": {
+    "learning_rate": 0.001,
+    "adam_betas": [
+      0.9,
+      0.999
+    ],
+    "adam_eps": 1e-08,
+    "weight_decay": 0.0,
+    "small_batch": 256,
+    "large_batch_fraction": 0.1,
+    "pixel_scale": "unit",
+    "bn_eps": 1e-05,
+    "bn_momentum": 0.1,
+    "output_batch_norm": false,
+    "dropout": 0.5,
+    "min_epochs": 100,
+    "patience": 20,
+    "min_delta": 0.0001,
+    "eval_batch": 256,
+    "path_points": 61,
+    "path_selector_seed": 20261022
+  },
+  "sb_model_sha256": "aff5e9ff2d962e100e6d78635f48bcdaf38ac92a837cc87e9b54e3ed8a169b7e",
+  "lb_model_sha256": "826471c78d1519d663d2d8cd2a235be46a68e38dd620d7f965c2bd4ca0d37486",
+  "sb_manifest": {
+    "schema": 1,
+    "implementation_sha256": "bb39f47bc2a4f0037f6271c3f86147521a701c6b6cd38a9525ff76cb459d4b8b",
+    "code_revision": "gpt-chat-seed42-v2",
+    "paper_sha256": "fbb3d2d981314adc7e5e3df7ec2c067f03d769a2a418c4d2580fa456cc5548d6",
+    "architecture_notes": "Xavier; SAME C1 conv/pool; C2 13 conv; hidden affine-BN-ReLU; dense dropout; log-BN-variance path",
+    "network": "C2",
+    "regime": "SB",
+    "seed": 42,
+    "batch_size": 256,
+    "protocol": {
+      "learning_rate": 0.001,
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "weight_decay": 0.0,
+      "small_batch": 256,
+      "large_batch_fraction": 0.1,
+      "pixel_scale": "unit",
+      "bn_eps": 1e-05,
+      "bn_momentum": 0.1,
+      "output_batch_norm": false,
+      "dropout": 0.5,
+      "min_epochs": 100,
+      "patience": 20,
+      "min_delta": 0.0001,
+      "eval_batch": 256
+    },
+    "data": {
+      "dataset": "CIFAR10",
+      "hashes": {
+        "train": "67e12c2a5906880a4fe5595fe6d768185ad7ca587f35d3a7ece3c3b8b85035d2",
+        "test": "e54a434ec35094516eacbaac0f2f9550358d985e9d1f71b47d41d333c15ba304"
+      },
+      "train_n": 50000,
+      "test_n": 10000
+    },
+    "environment": {
+      "python": "3.10.12",
+      "torch": "2.6.0+cu124",
+      "torchvision": "0.21.0+cu124",
+      "numpy": "2.2.6",
+      "pandas": "2.2.3",
+      "matplotlib": "3.10.9",
+      "device_type": "cuda",
+      "cuda": "12.4",
+      "cudnn": 90100,
+      "device_name": "NVIDIA RTX 6000 Ada Generation",
+      "num_workers": 0,
+      "deterministic_algorithms": true,
+      "torch_num_threads": 4,
+      "torch_num_interop_threads": 64,
+      "platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.35",
+      "default_dtype": "torch.float32"
+    }
+  },
+  "lb_manifest": {
+    "schema": 1,
+    "implementation_sha256": "bb39f47bc2a4f0037f6271c3f86147521a701c6b6cd38a9525ff76cb459d4b8b",
+    "code_revision": "gpt-chat-seed42-v2",
+    "paper_sha256": "fbb3d2d981314adc7e5e3df7ec2c067f03d769a2a418c4d2580fa456cc5548d6",
+    "architecture_notes": "Xavier; SAME C1 conv/pool; C2 13 conv; hidden affine-BN-ReLU; dense dropout; log-BN-variance path",
+    "network": "C2",
+    "regime": "LB",
+    "seed": 42,
+    "batch_size": 5000,
+    "protocol": {
+      "learning_rate": 0.001,
+      "adam_betas": [
+        0.9,
+        0.999
+      ],
+      "adam_eps": 1e-08,
+      "weight_decay": 0.0,
+      "small_batch": 256,
+      "large_batch_fraction": 0.1,
+      "pixel_scale": "unit",
+      "bn_eps": 1e-05,
+      "bn_momentum": 0.1,
+      "output_batch_norm": false,
+      "dropout": 0.5,
+      "min_epochs": 100,
+      "patience": 20,
+      "min_delta": 0.0001,
+      "eval_batch": 256
+    },
+    "data": {
+      "dataset": "CIFAR10",
+      "hashes": {
+        "train": "67e12c2a5906880a4fe5595fe6d768185ad7ca587f35d3a7ece3c3b8b85035d2",
+        "test": "e54a434ec35094516eacbaac0f2f9550358d985e9d1f71b47d41d333c15ba304"
+      },
+      "train_n": 50000,
+      "test_n": 10000
+    },
+    "environment": {
+      "python": "3.10.12",
+      "torch": "2.6.0+cu124",
+      "torchvision": "0.21.0+cu124",
+      "numpy": "2.2.6",
+      "pandas": "2.2.3",
+      "matplotlib": "3.10.9",
+      "device_type": "cuda",
+      "cuda": "12.4",
+      "cudnn": 90100,
+      "device_name": "NVIDIA RTX 6000 Ada Generation",
+      "num_workers": 0,
+      "deterministic_algorithms": true,
+      "torch_num_threads": 4,
+      "torch_num_interop_threads": 64,
+      "platform": "Linux-6.8.0-117-generic-x86_64-with-glibc2.35",
+      "default_dtype": "torch.float32"
+    }
+  },
+  "statuses": [
+    "converged",
+    "converged"
+  ],
+  "bn_buffers": "linear mean; log-linear variance; nearest integer counter",
+  "evaluation_dtype": "float32",
+  "provisional": false
+}
