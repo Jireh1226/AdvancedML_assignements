@@ -192,17 +192,21 @@ In panel (a), the loss curves retain oscillations after 100-update averaging. Th
 
 All selected models fit both clean and fully random training labels to zero error. Their test accuracies range from 50.72\% to 86.52\% with clean labels and fall to about 10\% with fully random labels. These results support the paper's distinction between fitting arbitrary assignments and learning patterns that generalise. Exact-zero timing is strongly affected by residual errors, explaining important features of the reproduced panel (b). Its full ordering and magnitude remain unmatched under the declared criterion.
 
-\subsection{Phase 4: status of an implementation comparison}
+\subsection{Phase 4: comparison with the released demonstration}
 
-The implementation comparison remains pending because the Phase 3 code has not yet been saved in a Git commit. No new author-implementation access was undertaken for this revision. The results and diagnostics above belong to the Phase 3 attempt; the earlier source access is disclosed below.
+The Phase 3 code was saved in local commit \texttt{8b28d5b} before inspecting the released implementation. The comparison used Chiyuan Zhang's repository at commit \texttt{972e71c}~\cite{author_demo}. Its README explicitly describes a separately written demonstration using Wide ResNet and MLP, rather than the original Inception/AlexNet experiments. It therefore provides an additional implementation check, without recovering all of Figure 1's settings.
+
+The demo agrees on uniformly resampling labels once and retaining them across epochs. Its label generator fixes NumPy seed 12345, which is a demo setting rather than evidence of the paper's seed. Its data loaders corrupt both training and validation labels when corruption is enabled; the reproduction retains clean test labels. The demo also uses uncropped $32\times32$ inputs with fixed channel normalisation. Its MLP has no biases and uses Gaussian initialisation, whereas the reproduced $28\times28$ MLP includes biases and uses Xavier-uniform weights.
+
+The demo defaults to batch size 128, 300 epochs, momentum SGD, and weight decay $10^{-4}$. Its learning rate drops by a factor of ten at epochs 150 and 225 within that budget. These settings differ from the paper's per-epoch exponential schedule and from the disclosed continuation. The demo evaluates training accuracy each epoch but does not implement Figure 1's convergence-time sweep. Its code therefore does not settle the original fitting threshold. No code, checkpoint, or plotted measurement was changed after this static comparison; no demo training was run. The saved snapshot identity and code hashes are in \path{phase3_record.json}.
 
 \subsection{Code and interaction record}
 
-The shared chat preserves the paper discussion and generated notebook revisions. Codex/IDE assistance converted the pasted code, launched the GPU runs, introduced the constant-rate continuation after the original schedule failed, and carried out the batch-size trials and later diagnostics. Execution was moved outside the chat to run and inspect the full experiments. The continuation and trial decisions are preserved in the local history rather than that shared conversation. This workflow does not fully meet the chat-interface requirement.
+The shared chat preserves the paper discussion and generated notebook revisions. Codex/IDE assistance converted the pasted code, launched the GPU runs, introduced the constant-rate continuation after the original schedule failed, and carried out the batch-size trials, diagnostics, and Phase 4 comparison. Execution was moved outside the chat to run and inspect the full experiments. These later decisions are preserved in the local history rather than that shared conversation. This workflow does not fully meet the chat-interface requirement.
 
 The LLM disclosed reading the authors' repository landing page and README, including example commands and sample output, before the reproduction was complete. It reported that it had not opened the Python implementation files. The shared page also lists \path{kobybibas/training_with_random_labels} as a search result. A second result is \path{google-research/heldout-influence-estimation}. Both include snippets. The web-tool outputs are redacted, so separate opening of those two repositories could not be verified. Framework documentation was also consulted. I subsequently instructed the LLM to avoid existing implementations.
 
-The executed notebook retains the finished results. Decisions and failed trials are recorded in the assignment-root \path{reproduction_changes.md}; \path{README.md} beside the notebook provides run instructions. The supplementary calculations are reproducible with \path{report_diagnostics.py}, which reads saved histories and exports the full threshold grid with source-file hashes. No new training or author-code comparison was performed for the report revision.
+The executed notebook retains the finished results. Decisions and failed trials are recorded in the assignment-root \path{reproduction_changes.md}; \path{README.md} beside the notebook provides run instructions. The supplementary calculations are reproducible with \path{report_diagnostics.py}, which reads saved histories and exports the full threshold grid with source-file hashes. No new training was performed for the report revision.
 
 \clearpage
 \section{Critical review}
@@ -229,9 +233,9 @@ Difference in interpretation. \href{https://openreview.net/forum?id=Sy8gdB9xx\&n
 
 Additional points. In a \href{https://openreview.net/forum?id=Sy8gdB9xx\&noteId=S1zRtYaBG}{public comment dated 30 January 2018}, Thomas Dietterich argued that roughly tripling the fitting time is meaningful and proposed early stopping as a capacity restriction. That proposal goes beyond my stopping-threshold diagnostic: it changes how long training runs rather than how fitting time is measured. Reviewer 1 also suggested testing prediction stability with dropout at inference, and Reviewer 3 requested clarification of the linear/kernel classification targets. Those were not controls in my assessment. Conversely, I did not find the smaller-clean-dataset control explicitly proposed in the three official reviews. Dietterich's later public comment is separate from those official reviews.
 
-\noindent Access disclosure. The archived public discussion also contained a short illustrative nearest-neighbour/random-forest code example. It was encountered during this review comparison, after the reproduction runs, and was not used to modify the notebook or results. No neural-network implementation was consulted during this comparison.
+\noindent Access disclosure. The archived public discussion also contained a short illustrative nearest-neighbour/random-forest code example. It was encountered during the OpenReview comparison, after the reproduction runs, and was not used to modify the notebook or results. The later neural-network code access is documented in Phase 4.
 
-\begin{thebibliography}{2}
+\begin{thebibliography}{3}
 \bibitem{zhang2017}
 Chiyuan Zhang, Samy Bengio, Moritz Hardt, Benjamin Recht, and Oriol Vinyals.
 \newblock Understanding deep learning requires rethinking generalization.
@@ -240,6 +244,10 @@ Chiyuan Zhang, Samy Bengio, Moritz Hardt, Benjamin Recht, and Oriol Vinyals.
 OpenReview. Official reviews, author response, and public discussion for paper \texttt{Sy8gdB9xx}.
 \newblock \href{https://openreview.net/forum?id=Sy8gdB9xx}{Original discussion}; accessed through the
 \href{https://github.com/xcfcode/openreview_spider/blob/b232dbcbbee6a7a39415c2ea046058e9dcd82e1e/res/Sy8gdB9xx.json}{archived OpenReview records}, 22 October 2026.
+\bibitem{author_demo}
+Chiyuan Zhang. \emph{Fitting random labels: demonstration code}.
+\newblock \href{https://github.com/pluskid/fitting-random-labels/tree/972e71c94442fc99baeb5baebee8c95e5767963b}{Repository at commit 972e71c}, accessed 22 October 2026 after the local Phase 3 commit.
+\newblock Files compared: \path{README.md}, \path{cifar10_data.py}, \path{cmd_args.py}, \path{model_mlp.py}, and \path{train.py}.
 \end{thebibliography}
 
 \end{document}
