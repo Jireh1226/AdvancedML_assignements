@@ -9,7 +9,6 @@ Figure 7A/B: beta=4 and beta=1 on all 737,280 dSprites images, seed 42.
 - [Original paper](291_beta_vae_learning_basic_visual.pdf), Figure 7 on page 10.
 - [Later ChatGPT/Astra conversation](https://chatgpt.com/share/6adadb56-35dc-83e9-9c94-7e1077a90301).
 - [Final artifact record](finalization_record.json) and [Phase 4 source check](phase4_record.json).
-- [Later completed chat-derived run](reruns/chat_seed42_v2_20261022/README.md), with a minimal notebook and comparison to the submitted results. It does not replace the report's earlier run or the submission ZIP.
 
 ## Which run is submitted?
 
