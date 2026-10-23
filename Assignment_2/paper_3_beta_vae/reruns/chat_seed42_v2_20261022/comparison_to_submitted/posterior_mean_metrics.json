@@ -1,0 +1,24 @@
+[
+  {
+    "beta": 4,
+    "epochs": 100,
+    "posterior_mean_reconstruction_nats": 42.4267036292301,
+    "mean_kl_nats": 12.18973642141791,
+    "checkpoint_sha256": "a08b630c69fb13f77db887bd78a717c06c49b7d859e289033b3d8b2a1cb8d67c",
+    "checkpoint_unchanged": true,
+    "evaluation_images": 737280,
+    "evaluation_batch": 512,
+    "precision": "FP32_no_TF32"
+  },
+  {
+    "beta": 1,
+    "epochs": 100,
+    "posterior_mean_reconstruction_nats": 31.185969298639492,
+    "mean_kl_nats": 19.093129020965556,
+    "checkpoint_sha256": "f9aa8f171ae303fbae2f85333a1fd5ee1acb3b9ef0985f51c51b93ee6236e8e1",
+    "checkpoint_unchanged": true,
+    "evaluation_images": 737280,
+    "evaluation_batch": 512,
+    "precision": "FP32_no_TF32"
+  }
+]

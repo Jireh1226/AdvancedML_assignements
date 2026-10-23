@@ -1,0 +1,53 @@
+{
+  "training": {
+    "seed": 42,
+    "batch_size": 256,
+    "lr": 0.01,
+    "latent_dim": 10,
+    "architecture": "FC:4096-1200-1200;Gaussian10;10-1200-1200-1200-4096",
+    "activations": "encoder:ReLU;decoder-hidden:tanh;output:linear-logits",
+    "init": "Xavier_uniform_gain1_bias0",
+    "optimizer": "Adagrad",
+    "eps": 1e-10,
+    "initial_accumulator_value": 0.1,
+    "lr_decay": 0.0,
+    "weight_decay": 0.0,
+    "loss": "pixel_sum+beta*latent_sum;batch_mean",
+    "data_sha256": "857dc001287e8efa226e0025fac6b29e5745c621b380b0d3363e4e33f4e28fa2",
+    "torch": "2.6.0+cu124",
+    "numpy": "2.2.6",
+    "python": "3.10.12",
+    "device": "cuda",
+    "deterministic": true
+  },
+  "training_code_sha256": "3b9f0290febef26706429d60271704788bd67b114e05e4cda1d1b09a3733361e",
+  "epochs": 100,
+  "betas": [
+    4.0,
+    1.0
+  ],
+  "plotting": {
+    "version": 1,
+    "reference_index": 328208,
+    "reference_factors": [
+      0,
+      1,
+      2,
+      0,
+      16,
+      16
+    ],
+    "traversal": [
+      3.0,
+      1.5,
+      0.0,
+      -1.5,
+      -3.0
+    ],
+    "variance": "mean_posterior_variance",
+    "display": "Bernoulli_probabilities",
+    "columns": "all10_ascending_mean_posterior_variance"
+  },
+  "source": "Higgins et al. ICLR 2017: Table 1, Figure 7, Appendix A.6",
+  "dataset_url": "https://raw.githubusercontent.com/google-deepmind/dsprites-dataset/master/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz"
+}

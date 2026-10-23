@@ -1,0 +1,82 @@
+{
+  "comparison": "Completed 100-epoch seed-42 pairs; earlier submitted run versus later chat-derived run.",
+  "measurements": [
+    {
+      "beta": 4,
+      "old_posterior_mean_reconstruction_nats": 45.14476760758294,
+      "new_posterior_mean_reconstruction_nats": 42.4267036292301,
+      "reconstruction_relative_change_percent": -6.020772998499813,
+      "old_mean_kl_nats": 11.90019160946108,
+      "new_mean_kl_nats": 12.18973642141791,
+      "kl_relative_change_percent": 2.4331105032513234,
+      "old_coordinates_with_mean_variance_below_half": 5,
+      "new_coordinates_with_mean_variance_below_half": 5,
+      "new_ordered_latent_ids": [
+        3,
+        7,
+        4,
+        1,
+        9,
+        5,
+        10,
+        8,
+        6,
+        2
+      ],
+      "new_ordered_posterior_variances": [
+        0.0021908442172759853,
+        0.00246565008477556,
+        0.01853050199352708,
+        0.07085342242133064,
+        0.07575383149435563,
+        0.9976671970771147,
+        0.9981300748676101,
+        0.9982558728557908,
+        0.9984392629692189,
+        0.9994842231692422
+      ]
+    },
+    {
+      "beta": 1,
+      "old_posterior_mean_reconstruction_nats": 33.45641389158037,
+      "new_posterior_mean_reconstruction_nats": 31.185969298639492,
+      "reconstruction_relative_change_percent": -6.7862760195953165,
+      "old_mean_kl_nats": 17.606148353288003,
+      "new_mean_kl_nats": 19.093129020965556,
+      "kl_relative_change_percent": 8.445803351417602,
+      "old_coordinates_with_mean_variance_below_half": 5,
+      "new_coordinates_with_mean_variance_below_half": 6,
+      "new_ordered_latent_ids": [
+        7,
+        6,
+        10,
+        2,
+        1,
+        4,
+        8,
+        3,
+        5,
+        9
+      ],
+      "new_ordered_posterior_variances": [
+        0.0006591738051043776,
+        0.0007726819606723328,
+        0.0013258569880183677,
+        0.0016665521278416287,
+        0.008250139361880491,
+        0.019573745231818093,
+        0.9941242193613208,
+        0.9948933516557897,
+        0.9949927888719281,
+        0.9960719258243949
+      ]
+    }
+  ],
+  "all_cached_numeric_arrays_finite": true,
+  "visual_assessment": "Same qualitative contrast: beta=4 has relatively selective position, scale and rotation coordinates; beta=1 has more mixed responses and traversals. Neither is perfectly disentangled.",
+  "observed_difference": "The new beta=1 run has six low-variance coordinates, versus five in the submitted run. Coordinate identities, signs, response shapes and traversal details differ.",
+  "reference_image_difference": "Old zero-based scale index 3, new scale index 2; both use an oval at rotation 0 and positions 16,16. Traversal pixels are not a matched-reference quantitative test.",
+  "comparison_limits": "One pair per implementation; not a statistical equivalence or robustness test. Posterior-mean reconstruction is not the expected ELBO reconstruction term.",
+  "decision": "Similar qualitative result and comparable reconstruction/KL; publish only as a separate later run.",
+  "submitted_report_notebook_and_zip_replaced": false
+}
