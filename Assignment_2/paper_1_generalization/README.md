@@ -3,7 +3,7 @@
 ## Files
 
 - `figure1_reproduction.ipynb`: executed PyTorch notebook for all three panels of Figure 1.
-- `understanding_deep_learning_requires_rethinking_generalization.pdf`: report; the adjacent `.tex` is its source.
+- `understanding_deep_learning_requires_rethinking_generalization.pdf`: report.
 - `results_figure1_reviewed/full/`: original 64-epoch runs, their histories, checkpoints, summaries, and primary figures.
 - `results_figure1_reviewed/convergence/`: selected AlexNet/MLP continuations at the disclosed learning-rate floor.
 - `results_figure1_reviewed/audit/review_audit.json`: summaries of rejected smaller-batch trials and previous checks.
@@ -57,18 +57,6 @@ Run all cells in order. The five Inception conditions and three-model corruption
 Completed runs reload rather than retrain. Interruptions resume from saved epoch boundaries. Exact continuation checks require the recorded framework versions and device; do not disable those checks to resume a checkpoint in a different environment. A fresh run on another environment can differ even with seed 42.
 
 The diagnostic script defaults to the preserved `seed42_full_v1` experiment. A fresh batch does not silently replace the submitted results.
-
-## Build the report
-
-From this directory, generate the supplementary assets, then run LaTeX twice:
-
-```sh
-python report_diagnostics.py
-pdflatex -interaction=nonstopmode -halt-on-error understanding_deep_learning_requires_rethinking_generalization.tex
-pdflatex -interaction=nonstopmode -halt-on-error understanding_deep_learning_requires_rethinking_generalization.tex
-```
-
-The report also requires the supplied original paper PDF and the preserved `figure1a.png` and `figure1bc.png` files.
 
 ## Reproduction record
 

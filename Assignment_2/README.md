@@ -4,7 +4,7 @@ Each paper has its own folder containing its report, executed notebook, original
 
 ## Paper 1: Understanding Deep Learning Requires Rethinking Generalization
 
-- [Report PDF](paper_1_generalization/understanding_deep_learning_requires_rethinking_generalization.pdf) and [LaTeX source](paper_1_generalization/understanding_deep_learning_requires_rethinking_generalization.tex).
+- [Report PDF](paper_1_generalization/understanding_deep_learning_requires_rethinking_generalization.pdf).
 - [Executed Jupyter notebook](paper_1_generalization/figure1_reproduction.ipynb).
 - [Run instructions](paper_1_generalization/README.md).
 - [Original paper](paper_1_generalization/259_understanding_deep_learning_re.pdf).
