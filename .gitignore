@@ -1,0 +1,16 @@
+.DS_Store
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+.env
+.env.*
+*.pt
+*.pth
+*.ckpt
+Assignment_2/data/
+Assignment_2/*/data/
+*.aux
+*.log
+*.out
+*.synctex.gz

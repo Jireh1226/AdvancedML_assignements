@@ -1,0 +1,1337 @@
+{
+  "selection_changed": false,
+  "batch32_pilots": [
+    {
+      "architecture": "mlp512",
+      "p": 0,
+      "first_fit_step": 112536,
+      "epochs": 72,
+      "train": {
+        "loss": 0.00555692780829966,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "initial_weights_sha256": "11e69704dfcf9f5d8465d05b473eb2f5ec22d765a61007d6cd72c18ea773705d"
+    },
+    {
+      "architecture": "mlp512",
+      "p": 1,
+      "first_fit_step": null,
+      "epochs": 128,
+      "train": {
+        "loss": 0.03609619655609131,
+        "error": 0.00182,
+        "accuracy": 0.99818,
+        "errors": 91,
+        "count": 50000
+      },
+      "initial_weights_sha256": "11e69704dfcf9f5d8465d05b473eb2f5ec22d765a61007d6cd72c18ea773705d"
+    },
+    {
+      "architecture": "alexnet",
+      "p": 0,
+      "first_fit_step": 34386,
+      "epochs": 64,
+      "train": {
+        "loss": 3.599985596496481e-05,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102"
+    },
+    {
+      "architecture": "alexnet",
+      "p": 1,
+      "first_fit_step": 96906,
+      "epochs": 64,
+      "train": {
+        "loss": 0.0006873390993708745,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102"
+    }
+  ],
+  "batch16_clean_pilot": [
+    {
+      "p": 0,
+      "first_fit_step": null,
+      "train": {
+        "loss": 0.004382098432616331,
+        "error": 8e-05,
+        "accuracy": 0.99992,
+        "errors": 4,
+        "count": 50000
+      },
+      "epochs": 128,
+      "initial_weights_sha256": "11e69704dfcf9f5d8465d05b473eb2f5ec22d765a61007d6cd72c18ea773705d"
+    }
+  ],
+  "batch16_random_partial": {
+    "epoch": 10,
+    "train": {
+      "loss": 2.3040082971954345,
+      "error": 0.83236,
+      "accuracy": 0.16764,
+      "errors": 41618,
+      "count": 50000
+    },
+    "first_fit_step": null,
+    "lr": 0.006302494097246091
+  },
+  "batch32_alexnet_all_trials": [
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.0,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 34386,
+      "final_fit": true,
+      "train": {
+        "loss": 3.599985596496481e-05,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 2.4072970822334288,
+        "error": 0.239,
+        "accuracy": 0.761,
+        "errors": 2390,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.239,
+      "corruption": {
+        "resampled_fraction": 0.0,
+        "changed_fraction": 0.0
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.1_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.1,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 48453,
+      "final_fit": true,
+      "train": {
+        "loss": 8.469675447398913e-05,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 3.165279372739792,
+        "error": 0.3013,
+        "accuracy": 0.6987,
+        "errors": 3013,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.3013,
+      "corruption": {
+        "resampled_fraction": 0.09882,
+        "changed_fraction": 0.0898
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.2_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.2,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 71898,
+      "final_fit": true,
+      "train": {
+        "loss": 0.00015793493518824107,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 3.9407581832885743,
+        "error": 0.3683,
+        "accuracy": 0.6316999999999999,
+        "errors": 3683,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.3683,
+      "corruption": {
+        "resampled_fraction": 0.19962,
+        "changed_fraction": 0.18074
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.3_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.3,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 60957,
+      "final_fit": true,
+      "train": {
+        "loss": 0.00017547023139166413,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 4.764607705116272,
+        "error": 0.4298,
+        "accuracy": 0.5702,
+        "errors": 4298,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.4298,
+      "corruption": {
+        "resampled_fraction": 0.29918,
+        "changed_fraction": 0.27052
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.4_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.4,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 75024,
+      "final_fit": true,
+      "train": {
+        "loss": 0.00018960749674850377,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 5.5528139087677,
+        "error": 0.499,
+        "accuracy": 0.501,
+        "errors": 4990,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.499,
+      "corruption": {
+        "resampled_fraction": 0.39728,
+        "changed_fraction": 0.3586
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.5_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.5,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 79713,
+      "final_fit": true,
+      "train": {
+        "loss": 0.00022147188702714628,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 6.380915666198731,
+        "error": 0.5639,
+        "accuracy": 0.43610000000000004,
+        "errors": 5639,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.5639,
+      "corruption": {
+        "resampled_fraction": 0.49628,
+        "changed_fraction": 0.44718
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.6_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.6,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 90654,
+      "final_fit": true,
+      "train": {
+        "loss": 0.00030154467520536856,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 7.859705831146241,
+        "error": 0.6447,
+        "accuracy": 0.35529999999999995,
+        "errors": 6447,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.6447,
+      "corruption": {
+        "resampled_fraction": 0.59694,
+        "changed_fraction": 0.53818
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.7_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.7,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 90654,
+      "final_fit": true,
+      "train": {
+        "loss": 0.0005140102276741527,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 9.318982624816895,
+        "error": 0.7242,
+        "accuracy": 0.27580000000000005,
+        "errors": 7242,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.7242,
+      "corruption": {
+        "resampled_fraction": 0.69774,
+        "changed_fraction": 0.62796
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.8_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.8,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 93780,
+      "final_fit": true,
+      "train": {
+        "loss": 0.0004827782175154425,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 10.952586413574219,
+        "error": 0.7962,
+        "accuracy": 0.20379999999999998,
+        "errors": 7962,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.7962,
+      "corruption": {
+        "resampled_fraction": 0.80116,
+        "changed_fraction": 0.72078
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p0.9_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 0.9,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 128,
+      "steps": 200064,
+      "first_fit_step": null,
+      "final_fit": false,
+      "train": {
+        "loss": 0.0006852220806514379,
+        "error": 4e-05,
+        "accuracy": 0.99996,
+        "errors": 2,
+        "count": 50000
+      },
+      "test": {
+        "loss": 12.712085485839843,
+        "error": 0.851,
+        "accuracy": 0.14900000000000002,
+        "errors": 8510,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.8509599999999999,
+      "corruption": {
+        "resampled_fraction": 0.90022,
+        "changed_fraction": 0.81008
+      },
+      "parameters": 1387786
+    },
+    {
+      "status": "completed",
+      "run_id": "batch32_v1_alexnet_labels_p1_seed42",
+      "config": {
+        "architecture": "alexnet",
+        "condition": "labels",
+        "p": 1.0,
+        "seed": 42,
+        "implementation": "figure1-paper-schedule-v1",
+        "epochs": 128,
+        "dataset_name": "CIFAR10",
+        "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+        "smoke_test": false,
+        "train_limit": null,
+        "test_limit": null,
+        "train_count": 50000,
+        "test_count": 10000,
+        "batch_size": 32,
+        "num_workers": 0,
+        "lr": 0.01,
+        "momentum": 0.9,
+        "lr_decay_per_epoch": 0.95,
+        "weight_decay": 0.0,
+        "pixel_statistics": {
+          "mean": 0.4677336668000532,
+          "variance": 0.06106332873577541,
+          "std": 0.2471099527250479,
+          "training_images": 50000,
+          "scalar_values": 117600000
+        },
+        "permutation": "flattened_scalar_channel_values",
+        "order": "crop_scale_corrupt_per_image_standardize",
+        "gaussian_clipping": false,
+        "initialization": "xavier_uniform",
+        "padding": "tensorflow_same",
+        "inception_bn": {
+          "scale": false,
+          "eps": 0.001,
+          "pytorch_momentum": 0.1
+        },
+        "alexnet_lrn": {
+          "size": 9,
+          "alpha": 0.001,
+          "beta": 0.75,
+          "k": 1.0
+        },
+        "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+        "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+        "torch": "2.6.0+cu124",
+        "torchvision": "0.21.0+cu124",
+        "numpy": "2.2.6",
+        "python": "3.10.12",
+        "device": "cuda",
+        "schedule_protocol": {
+          "version": "figure1-paper-schedule-v1",
+          "min_epochs": 64,
+          "max_epochs": 128,
+          "batch_size": 32,
+          "stop_rule": "zero_training_errors_after_min_epochs",
+          "learning_rate_floor": null
+        }
+      },
+      "epochs_completed": 64,
+      "steps": 100032,
+      "first_fit_step": 96906,
+      "final_fit": true,
+      "train": {
+        "loss": 0.0006873390993708745,
+        "error": 0.0,
+        "accuracy": 1.0,
+        "errors": 0,
+        "count": 50000
+      },
+      "test": {
+        "loss": 13.903913572692872,
+        "error": 0.898,
+        "accuracy": 0.10199999999999998,
+        "errors": 8980,
+        "count": 10000
+      },
+      "initial_weights_sha256": "a7ab6784f726d1b5302c89d395be04e895bc9a2f4b3002468e8f0e1bb2ad3102",
+      "generalization_gap": 0.898,
+      "corruption": {
+        "resampled_fraction": 1.0,
+        "changed_fraction": 0.9004
+      },
+      "parameters": 1387786
+    }
+  ],
+  "rejection": {
+    "state": "failed",
+    "error": "RuntimeError('AlexNet p=0.9 did not fit; retain old full series, not a mixed series.')"
+  },
+  "timing_sensitivity": [
+    {
+      "architecture": "inception",
+      "allowed_training_errors": 500,
+      "clean_epoch": 12,
+      "random_epoch": 38,
+      "ratio": 3.1666666666666665
+    },
+    {
+      "architecture": "inception",
+      "allowed_training_errors": 50,
+      "clean_epoch": 13,
+      "random_epoch": 38,
+      "ratio": 2.923076923076923
+    },
+    {
+      "architecture": "inception",
+      "allowed_training_errors": 0,
+      "clean_epoch": 14,
+      "random_epoch": 46,
+      "ratio": 3.2857142857142856
+    },
+    {
+      "architecture": "alexnet",
+      "allowed_training_errors": 500,
+      "clean_epoch": 12,
+      "random_epoch": 31,
+      "ratio": 2.5833333333333335
+    },
+    {
+      "architecture": "alexnet",
+      "allowed_training_errors": 50,
+      "clean_epoch": 14,
+      "random_epoch": 34,
+      "ratio": 2.4285714285714284
+    },
+    {
+      "architecture": "alexnet",
+      "allowed_training_errors": 0,
+      "clean_epoch": 15,
+      "random_epoch": 83,
+      "ratio": 5.533333333333333
+    },
+    {
+      "architecture": "mlp512",
+      "allowed_training_errors": 500,
+      "clean_epoch": 25,
+      "random_epoch": 68,
+      "ratio": 2.72
+    },
+    {
+      "architecture": "mlp512",
+      "allowed_training_errors": 50,
+      "clean_epoch": 37,
+      "random_epoch": 201,
+      "ratio": 5.4324324324324325
+    },
+    {
+      "architecture": "mlp512",
+      "allowed_training_errors": 0,
+      "clean_epoch": 393,
+      "random_epoch": 458,
+      "ratio": 1.1653944020356235
+    }
+  ],
+  "other_figures": {
+    "large_batch": [
+      {
+        "architecture": "F1",
+        "verified_points": [
+          {
+            "alpha": 0.0,
+            "stored": {
+              "loss": 0.0752120608329773,
+              "accuracy": 0.9861,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 0.07531948051452637,
+              "accuracy": 0.9861,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": 0.0,
+            "test_loss_change": 0.00010741968154907855
+          },
+          {
+            "alpha": 1.0,
+            "stored": {
+              "loss": 0.07630268864631652,
+              "accuracy": 0.982,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 0.07627250418663024,
+              "accuracy": 0.9822,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": 0.019999999999997797,
+            "test_loss_change": -3.0184459686277698e-05
+          },
+          {
+            "alpha": 1.2,
+            "stored": {
+              "loss": 5.126451916503906,
+              "accuracy": 0.0477,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 5.126903845214843,
+              "accuracy": 0.0476,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": -0.009999999999999593,
+            "test_loss_change": 0.0004519287109374659
+          }
+        ],
+        "train_epochs": [
+          100,
+          100
+        ]
+      },
+      {
+        "architecture": "C1",
+        "verified_points": [
+          {
+            "alpha": 0.0,
+            "stored": {
+              "loss": 2.2390629150390624,
+              "accuracy": 0.71,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 2.2422755859375,
+              "accuracy": 0.7101,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": 0.009999999999998899,
+            "test_loss_change": 0.003212670898437686
+          },
+          {
+            "alpha": 1.0,
+            "stored": {
+              "loss": 3.029056231689453,
+              "accuracy": 0.6678,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 3.03173857421875,
+              "accuracy": 0.6676,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": -0.019999999999997797,
+            "test_loss_change": 0.0026823425292969993
+          },
+          {
+            "alpha": 1.2,
+            "stored": {
+              "loss": 12.349008862304688,
+              "accuracy": 0.2213,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 12.348963330078124,
+              "accuracy": 0.2214,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": 0.010000000000001674,
+            "test_loss_change": -4.553222656333844e-05
+          }
+        ],
+        "train_epochs": [
+          165,
+          300
+        ]
+      },
+      {
+        "architecture": "C2",
+        "verified_points": [
+          {
+            "alpha": 0.0,
+            "stored": {
+              "loss": 0.9247995544433594,
+              "accuracy": 0.8607,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 0.9255998931884766,
+              "accuracy": 0.8608,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": 0.009999999999998899,
+            "test_loss_change": 0.0008003387451172017
+          },
+          {
+            "alpha": 1.0,
+            "stored": {
+              "loss": 1.2567438690185546,
+              "accuracy": 0.8133,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 1.258459799194336,
+              "accuracy": 0.8131,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": -0.019999999999997797,
+            "test_loss_change": 0.0017159301757814216
+          },
+          {
+            "alpha": 1.2,
+            "stored": {
+              "loss": 2.6855744567871094,
+              "accuracy": 0.1367,
+              "count": 10000
+            },
+            "calibration_batch256": {
+              "loss": 2.6951635070800783,
+              "accuracy": 0.1367,
+              "count": 10000
+            },
+            "test_accuracy_change_pp": 0.0,
+            "test_loss_change": 0.00958905029296897
+          }
+        ],
+        "train_epochs": [
+          165,
+          180
+        ]
+      }
+    ],
+    "beta_vae": [
+      {
+        "beta": 4,
+        "full_dataset_grouping_verified": 737280,
+        "max_traversal_difference": 1.6689300537109375e-06,
+        "active_latents_mean_kl_above_0_01": 5,
+        "objective_check": "4096*log(2) reconstruction; 5 nats KL for ten unit means"
+      },
+      {
+        "beta": 1,
+        "full_dataset_grouping_verified": 737280,
+        "max_traversal_difference": 2.294778823852539e-06,
+        "active_latents_mean_kl_above_0_01": 5,
+        "objective_check": "4096*log(2) reconstruction; 5 nats KL for ten unit means"
+      }
+    ],
+    "unchanged_checkpoints": {
+      "results_large_batch/seed42_v1/C1_LB_seed42/checkpoint.pt": "b2c9ee3f395e34263b570e41c1b632a02ddee7ab07769964dd674a73f0bf627a",
+      "results_large_batch/seed42_v1/C1_SB_seed42/checkpoint.pt": "2b99b538878c36e7d7b93f41517da88e464c810b97c2a590a8c657050dcd0108",
+      "results_large_batch/seed42_v1/C2_LB_seed42/checkpoint.pt": "2680e15423eb0d44eda03cba07bbdca53cf9970457b7be6bc76166963e0c4a81",
+      "results_large_batch/seed42_v1/C2_SB_seed42/checkpoint.pt": "7f1ab21061f7174f500b76d0d3c147f41ddf90a1d83bb8f1acfbc0dce8618c41",
+      "results_large_batch/seed42_v1/F1_LB_seed42/checkpoint.pt": "2b8ea69b747e2a54fa1c897b08aeecdf7e5f30b6d221abacbb275b8b950ffa23",
+      "results_large_batch/seed42_v1/F1_SB_seed42/checkpoint.pt": "254f40a948449c0155f959cd81adfe12526c37f0607b514a3158e9218ef2dde7",
+      "results_beta_vae/seed42_v1/beta1_seed42/checkpoint.pt": "2f7b41edf2792ee2a193fa84816b040e7057d8ef4f0d3d0eb09972792fa92dbe",
+      "results_beta_vae/seed42_v1/beta4_seed42/checkpoint.pt": "2f7f064a4da808ef1a092c9ec3a06861e5ff8a762e0acb90d31db03aa417307b"
+    }
+  },
+  "notebook_checks": {
+    "figure1_reproduction": {
+      "executed_cells": 15,
+      "valid": true,
+      "errors": 0
+    },
+    "on_large_batch_training_for_deep_learning": {
+      "executed_cells": 6,
+      "valid": true,
+      "errors": 0
+    },
+    "beta_vae_learning_basic_visual_concepts": {
+      "executed_cells": 6,
+      "valid": true,
+      "errors": 0
+    }
+  },
+  "diagnostic_checkpoint_reevaluation": "exact agreement"
+}

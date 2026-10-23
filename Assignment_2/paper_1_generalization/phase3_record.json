@@ -1,0 +1,21 @@
+{
+  "local_phase3_commit": "8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533",
+  "local_phase3_committed_at": "2026-10-22T19:37:27-05:00",
+  "local_reference": "refs/local/assignment2-phase3",
+  "author_source_inspection_started_utc": "2026-10-23T00:37:36Z",
+  "author_repository": "https://github.com/pluskid/fitting-random-labels",
+  "author_commit": "972e71c94442fc99baeb5baebee8c95e5767963b",
+  "publication_note": "Paper 1 was exported from the already-saved local Phase 3 snapshot after source inspection. The publication commit is not represented as predating that inspection. The original local commit includes other papers and is not pushed.",
+  "code_files": [
+    {
+      "path": "Assignment_2/paper_1_generalization/figure1_reproduction.ipynb",
+      "sha256": "5697c4a318ec6d90799466e2c62cca727148e8c22bf0f4fd85a9d7e97a9c3ecb",
+      "git_blob": "99be534822c479d221d790e63986af73227feaa1"
+    },
+    {
+      "path": "Assignment_2/paper_1_generalization/report_diagnostics.py",
+      "sha256": "aa51cab03ac6f4e8d9900c564ea9bc1cb60a779cb228f080395a6401ce376141",
+      "git_blob": "a92f800b8b83e06ccc15b5b7ebf52c438bde04e0"
+    }
+  ]
+}

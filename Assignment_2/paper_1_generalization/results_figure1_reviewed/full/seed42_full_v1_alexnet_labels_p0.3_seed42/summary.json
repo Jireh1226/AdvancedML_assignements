@@ -1,0 +1,79 @@
+{
+  "status": "completed",
+  "run_id": "seed42_full_v1_alexnet_labels_p0.3_seed42",
+  "config": {
+    "architecture": "alexnet",
+    "condition": "labels",
+    "p": 0.3,
+    "seed": 42,
+    "implementation": "figure1-reviewed-v3",
+    "epochs": 64,
+    "dataset_name": "CIFAR10",
+    "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+    "smoke_test": false,
+    "train_limit": null,
+    "test_limit": null,
+    "train_count": 50000,
+    "test_count": 10000,
+    "batch_size": 128,
+    "num_workers": 0,
+    "lr": 0.01,
+    "momentum": 0.9,
+    "lr_decay_per_epoch": 0.95,
+    "weight_decay": 0.0,
+    "pixel_statistics": {
+      "mean": 0.4677336668000532,
+      "variance": 0.06106332873577541,
+      "std": 0.2471099527250479,
+      "training_images": 50000,
+      "scalar_values": 117600000
+    },
+    "permutation": "flattened_scalar_channel_values",
+    "order": "crop_scale_corrupt_per_image_standardize",
+    "gaussian_clipping": false,
+    "initialization": "xavier_uniform",
+    "padding": "tensorflow_same",
+    "inception_bn": {
+      "scale": false,
+      "eps": 0.001,
+      "pytorch_momentum": 0.1
+    },
+    "alexnet_lrn": {
+      "size": 9,
+      "alpha": 0.001,
+      "beta": 0.75,
+      "k": 1.0
+    },
+    "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+    "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+    "torch": "2.6.0+cu124",
+    "torchvision": "0.21.0+cu124",
+    "numpy": "2.2.6",
+    "python": "3.10.12",
+    "device": "cuda"
+  },
+  "epochs_completed": 64,
+  "steps": 25024,
+  "first_fit_step": 17986,
+  "final_fit": true,
+  "train": {
+    "loss": 0.0005946465500816703,
+    "error": 0.0,
+    "accuracy": 1.0,
+    "errors": 0,
+    "count": 50000
+  },
+  "test": {
+    "loss": 3.218898952102661,
+    "error": 0.4251,
+    "accuracy": 0.5749,
+    "errors": 4251,
+    "count": 10000
+  },
+  "generalization_gap": 0.4251,
+  "corruption": {
+    "resampled_fraction": 0.29918,
+    "changed_fraction": 0.27052
+  },
+  "parameters": 1387786
+}

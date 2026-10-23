@@ -1,0 +1,88 @@
+{
+  "status": "completed",
+  "run_id": "seed42_full_v1_alexnet_labels_p1_seed42",
+  "config": {
+    "architecture": "alexnet",
+    "condition": "labels",
+    "p": 1.0,
+    "seed": 42,
+    "implementation": "figure1-reviewed-v3",
+    "epochs": 1024,
+    "dataset_name": "CIFAR10",
+    "data_root": "/array/katebej/assignment2_generalization_20261022/data",
+    "smoke_test": false,
+    "train_limit": null,
+    "test_limit": null,
+    "train_count": 50000,
+    "test_count": 10000,
+    "batch_size": 128,
+    "num_workers": 0,
+    "lr": 0.01,
+    "momentum": 0.9,
+    "lr_decay_per_epoch": 0.95,
+    "weight_decay": 0.0,
+    "pixel_statistics": {
+      "mean": 0.4677336668000532,
+      "variance": 0.06106332873577541,
+      "std": 0.2471099527250479,
+      "training_images": 50000,
+      "scalar_values": 117600000
+    },
+    "permutation": "flattened_scalar_channel_values",
+    "order": "crop_scale_corrupt_per_image_standardize",
+    "gaussian_clipping": false,
+    "initialization": "xavier_uniform",
+    "padding": "tensorflow_same",
+    "inception_bn": {
+      "scale": false,
+      "eps": 0.001,
+      "pytorch_momentum": 0.1
+    },
+    "alexnet_lrn": {
+      "size": 9,
+      "alpha": 0.001,
+      "beta": 0.75,
+      "k": 1.0
+    },
+    "shuffle_rule": "seed_plus_zero_based_epoch_prepared_before_checkpoint",
+    "fit_rule": "zero_train_eval_errors_checked_each_epoch",
+    "torch": "2.6.0+cu124",
+    "torchvision": "0.21.0+cu124",
+    "numpy": "2.2.6",
+    "python": "3.10.12",
+    "device": "cuda",
+    "continuation": {
+      "version": "figure1-convergence-v1",
+      "parent_run_id": "seed42_full_v1_alexnet_labels_p1_seed42",
+      "parent_checkpoint_sha256": "8d75c9c46ca40c0e9e65af5e79492893c9653494d6ca3a3883b167031d2da12d",
+      "parent_epochs": 64,
+      "lr_floor": 0.00037524139211116017,
+      "max_epochs": 1024,
+      "stop_rule": "first_zero_train_eval_errors_after_parent_checkpoint"
+    }
+  },
+  "epochs_completed": 83,
+  "steps": 32453,
+  "first_fit_step": 32453,
+  "final_fit": true,
+  "train": {
+    "loss": 0.0015282483314722776,
+    "error": 0.0,
+    "accuracy": 1.0,
+    "errors": 0,
+    "count": 50000
+  },
+  "test": {
+    "loss": 10.170179951477051,
+    "error": 0.9007,
+    "accuracy": 0.09930000000000005,
+    "errors": 9007,
+    "count": 10000
+  },
+  "generalization_gap": 0.9007,
+  "corruption": {
+    "resampled_fraction": 1.0,
+    "changed_fraction": 0.9004
+  },
+  "parameters": 1387786
+}
