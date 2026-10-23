@@ -223,3 +223,17 @@ The complete README was read, including its illustrative linear/kernel example. 
 The first upload to `https://github.com/Jireh1226/AdvancedML_assignements.git` added Paper 1 before the final assignment submission, earlier than the publication day specified in the guidelines. Datasets, large checkpoints, and the original mixed-paper Phase 3 commit were excluded from that upload.
 
 Validation for this revision includes recalculating all 99 timing measurements from 33 saved runs, checking those endpoints against the previous audit, validating notebook cell syntax and the absence of saved error outputs, comparing original artifact hashes, and compiling the report twice. The report's summary remains limited to its first two pages. No full notebook training was rerun during report revision or publication preparation.
+
+## Paper 1 second review: stale PDF correction
+
+The second review correctly identified that the distributed PDF still contained the earlier pending-Phase-4 paragraph, even though the adjacent local source contained the completed comparison. Both the assignment-folder PDF and repository PDF had SHA-256 `c83318692c834f4616b63f7eb7d6c03f440e135ac5a2de5c8496a8a53fce2524`. The previous statement that the final report had been compiled and synchronized was inaccurate for the distributed artifact.
+
+Rebuilt the exact current source twice in a fresh output directory, without editing or publishing the LaTeX source. Source SHA-256: `4dac7773a4eb4359e96a10f63ba169db55fc449d6b6084255794441096328fc0`. Corrected PDF SHA-256: `fb8ac17c1f626da849ec691e35b091885aa97a7a8c8269ab82013cd0c12a3bfd`. The report remains ten pages.
+
+Validation now checks the PDF itself rather than inferring its contents from the source: page 7 contains the completed Phase 4 section and commits `8b28d5b` and `972e71c`; page 8 contains the updated interaction record; page 10 contains the third bibliography entry for the released demonstration. The outdated claims that the comparison remains pending and that no Phase 3 commit exists are absent. The rendered Phase 4 page was also inspected. The build has no overfull boxes or unresolved references; the shell-escape-disabled notice concerns an unused image-conversion capability.
+
+Synchronized the local Paper 1 README with the repository's PDF-only version by removing the LaTeX-source description and report-build section. The repository's Assignment 2 README already has no report-source link, so it requires no change.
+
+No notebook, checkpoint, original plot, diagnostic measurement, or other paper report was changed. The first public export was created after author-source inspection; tagging that export would not make it the original pre-inspection Phase 3 commit. The original mixed-paper commit remains separately identified in the provenance record. A visibility change would restrict future access, not undo earlier publication.
+
+On 22 October 2026, the repository was changed to private at the user's request and GitHub's API confirmed private visibility. This limits further public access; the earlier-publication disclosure is retained.
