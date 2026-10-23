@@ -1,0 +1,27 @@
+{
+  "state": "complete",
+  "training_performed": false,
+  "elapsed_seconds": 19.942826298996806,
+  "all_61_baseline_points_reproduced_exactly": true,
+  "unchanged_files": {
+    "figure1_reproduction.ipynb": "62e6ad6a86186c868dd715da835e6d2753907b38bdc78a61b4af5c737370e91c",
+    "beta_vae_learning_basic_visual_concepts.ipynb": "c7b961c0a8925dc97d1178685b0581bd7c0b4df6752c2716b18be46fd1a39f29",
+    "on_large_batch_training_for_deep_learning.ipynb": "68a06d56e9c60c2f8b68982a69814953c5e4f059f886c49ca039574802eb0ce8",
+    "results_figure1_reviewed/full/figure1a.png": "4a1fb8148e388219d59a22ab114cc2dd2f3a5fba9599f16b15af136dddb8121d",
+    "results_figure1_reviewed/full/figure1bc.png": "a6f40cbf7103e012a69aa1be3012d6bfa0c537e2fdcb64a2fec4706f987139a2",
+    "results_beta_vae/seed42_v1/figure7ab.png": "1ab28d6f828c8f6f12f13bab014a671d797f0c9278bc5341533992a9d90ca242",
+    "results_large_batch/seed42_v1/figure3_f1_c1_c2.png": "d362e2010e8a45e1dfcc44553db82bea9c43ea3adc601a32df4139a12731e7c7",
+    "results_large_batch/seed42_v1/F1_SB_seed42/checkpoint.pt": "254f40a948449c0155f959cd81adfe12526c37f0607b514a3158e9218ef2dde7",
+    "results_large_batch/seed42_v1/F1_LB_seed42/checkpoint.pt": "2b8ea69b747e2a54fa1c897b08aeecdf7e5f30b6d221abacbb275b8b950ffa23",
+    "results_large_batch/seed42_v1/C1_SB_seed42/checkpoint.pt": "2b99b538878c36e7d7b93f41517da88e464c810b97c2a590a8c657050dcd0108",
+    "results_large_batch/seed42_v1/C1_LB_seed42/checkpoint.pt": "b2c9ee3f395e34263b570e41c1b632a02ddee7ab07769964dd674a73f0bf627a",
+    "results_large_batch/seed42_v1/C2_SB_seed42/checkpoint.pt": "7f1ab21061f7174f500b76d0d3c147f41ddf90a1d83bb8f1acfbc0dce8618c41",
+    "results_large_batch/seed42_v1/C2_LB_seed42/checkpoint.pt": "2680e15423eb0d44eda03cba07bbdca53cf9970457b7be6bc76166963e0c4a81",
+    "results_beta_vae/seed42_v1/beta4_seed42/checkpoint.pt": "2f7f064a4da808ef1a092c9ec3a06861e5ff8a762e0acb90d31db03aa417307b",
+    "results_beta_vae/seed42_v1/beta1_seed42/checkpoint.pt": "2f7b41edf2792ee2a193fa84816b040e7057d8ef4f0d3d0eb09972792fa92dbe"
+  },
+  "protocol": "identical affine trainable weights; change BN running statistics only; dropout disabled",
+  "fixed_buffer_caveat": "Each fixed-buffer control preserves only its own endpoint full model, not both endpoints.",
+  "affine_buffer_caveat": "Negative extrapolated variances are invalid and omitted; no clamping or invented points.",
+  "selection_changed": false
+}

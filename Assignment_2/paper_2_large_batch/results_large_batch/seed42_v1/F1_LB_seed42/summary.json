@@ -1,0 +1,62 @@
+{
+  "status": "completed",
+  "architecture": "F1",
+  "regime": "LB",
+  "config": {
+    "implementation": "keskar-figure3-v1",
+    "architecture": "F1",
+    "regime": "LB",
+    "seed": 42,
+    "batch_size": 6000,
+    "training_count": 60000,
+    "optimizer": "Adam",
+    "lr": 0.001,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "eps": 1e-08,
+    "weight_decay": 0,
+    "min_epochs": 100,
+    "max_epochs": 300,
+    "evaluate_every": 5,
+    "plateau_patience": 30,
+    "minimum_improvement": 0.0001,
+    "pixel_scaling": "uint8_to_float32_divide_255",
+    "augmentation": false,
+    "initialization": "xavier_uniform_bias_zero",
+    "paired_initialization": true,
+    "bn_eps": 1e-05,
+    "bn_momentum": 0.1,
+    "bn_output_logits": false,
+    "c1_pool_stride_padding": [
+      2,
+      1
+    ],
+    "c1_conv_padding": 2,
+    "c2_activation_checkpointing": false,
+    "environment": {
+      "torch": "2.6.0+cu124",
+      "torchvision": "0.21.0+cu124",
+      "numpy": "2.2.6",
+      "device": "cuda",
+      "precision": "float32_no_tf32"
+    }
+  },
+  "epochs": 100,
+  "steps": 1000,
+  "stop_reason": "training_loss_plateau",
+  "train": {
+    "loss": 2.5281063234433532e-05,
+    "accuracy": 1.0,
+    "count": 60000
+  },
+  "test": {
+    "loss": 0.07626207189559936,
+    "accuracy": 0.9822,
+    "count": 10000
+  },
+  "initial_digest": "e74da8d41013eec9c40c68c691bfc5f4231615359e569cf8b78c4c3c4c508889",
+  "parameters": 1462794,
+  "directory": "/array/katebej/assignment2_generalization_20261022/results_large_batch/seed42_v1/F1_LB_seed42"
+}

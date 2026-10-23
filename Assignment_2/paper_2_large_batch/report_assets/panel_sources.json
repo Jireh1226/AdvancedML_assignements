@@ -1,0 +1,23 @@
+{
+  "F1": {
+    "source": "results_large_batch/seed42_v1/F1_interpolation.json",
+    "source_sha256": "667a2579978b5274fd4e1afcfd2e76387909d18b14ea3643b83ccc1a18c66db1",
+    "points": 61,
+    "smoothing": false,
+    "output": "F1_panel.pdf"
+  },
+  "C1": {
+    "source": "results_large_batch/seed42_v1/C1_interpolation.json",
+    "source_sha256": "9cbc45391ffc38d3e4634b6ef3b89538eafda2ecae747e0639163baf04dd01c2",
+    "points": 61,
+    "smoothing": false,
+    "output": "C1_panel.pdf"
+  },
+  "C2": {
+    "source": "results_large_batch/seed42_v1/C2_interpolation.json",
+    "source_sha256": "f766733ded9fffb5ae44082613c44abb0d24f4cccab2944db3c389254f2e0e0c",
+    "points": 61,
+    "smoothing": false,
+    "output": "C2_panel.pdf"
+  }
+}

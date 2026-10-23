@@ -1,0 +1,89 @@
+{
+  "paper": "On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima",
+  "record_created_utc": "2026-10-23T02:09:24Z",
+  "inspection_method": "Static source reading only; no author code executed or copied into the reproduction.",
+  "local_phase3_commit": "8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533",
+  "local_phase3_committed_at": "2026-10-22T19:37:27-05:00",
+  "local_phase3_ref": "refs/local/assignment2-phase3",
+  "phase3_commit_pushed": false,
+  "notebook": {
+    "path": "on_large_batch_training_for_deep_learning.ipynb",
+    "phase3_path": "Assignment_2/paper_2_large_batch/on_large_batch_training_for_deep_learning.ipynb",
+    "phase3_git_blob_sha": "0666c7e4eb0e2db696ecf58b40cb5fd9e0215b42",
+    "sha256": "fb8ce76ef7d4de783eb223b8506a5a8edb110f989bcae3db2488e9fba5e8b7c9",
+    "byte_identical_to_phase3_snapshot": true
+  },
+  "initial_inspection": {
+    "started_utc": null,
+    "recorded_local_date": "2026-10-22",
+    "timezone": "America/Chicago",
+    "chronology_source": "reproduction_changes.md, section 'Paper 2 report: chat review, completed evidence, and Phase 4 comparison'",
+    "chronology_statement": "The historical change log places the original inspection after the saved Phase 3 snapshot.",
+    "limitation": "The exact original inspection timestamp was not preserved. This record does not reconstruct or backdate it."
+  },
+  "recheck": {
+    "started_utc": "2026-10-23T02:05:27Z",
+    "completed_utc": "2026-10-23T02:07:50Z",
+    "method": "Retrieved files through the GitHub connector at the pinned references and read source relevant to the report.",
+    "author_repository": "keskarnitish/large-batch-training",
+    "author_commit": "8819876245c0ce390eab1c0de1ba3be787e15058",
+    "author_files": [
+      {
+        "path": "README.md",
+        "git_blob_sha": "776661b0693fa15e398b11eaca7f36a1cc215f03",
+        "url": "https://github.com/keskarnitish/large-batch-training/blob/8819876245c0ce390eab1c0de1ba3be787e15058/README.md"
+      },
+      {
+        "path": "network_zoo.py",
+        "git_blob_sha": "8568536488f34be01931724e4d1905dfc3fb45a9",
+        "url": "https://github.com/keskarnitish/large-batch-training/blob/8819876245c0ce390eab1c0de1ba3be787e15058/network_zoo.py"
+      },
+      {
+        "path": "plot_parametric_plot.py",
+        "git_blob_sha": "eff7b3c0671f7279df64fb268d701ce991e1ac7d",
+        "url": "https://github.com/keskarnitish/large-batch-training/blob/8819876245c0ce390eab1c0de1ba3be787e15058/plot_parametric_plot.py"
+      },
+      {
+        "path": "PyTorch/README.md",
+        "git_blob_sha": "24532f7fb34a518c83e0d443f132bfb0ae5bfcf6",
+        "url": "https://github.com/keskarnitish/large-batch-training/blob/8819876245c0ce390eab1c0de1ba3be787e15058/PyTorch/README.md"
+      },
+      {
+        "path": "PyTorch/plot_parametric_pytorch.py",
+        "git_blob_sha": "73de23363bc6dbb8b4c0ee4228ec84f8e039fd7d",
+        "url": "https://github.com/keskarnitish/large-batch-training/blob/8819876245c0ce390eab1c0de1ba3be787e15058/PyTorch/plot_parametric_pytorch.py"
+      },
+      {
+        "path": "PyTorch/vgg.py",
+        "git_blob_sha": "a874ef8fd9b3b6905f7a17e334be13a627795b00",
+        "url": "https://github.com/keskarnitish/large-batch-training/blob/8819876245c0ce390eab1c0de1ba3be787e15058/PyTorch/vgg.py"
+      }
+    ],
+    "historical_api_repository": "keras-team/keras",
+    "historical_api_ref": "1.2.2",
+    "historical_api_files": [
+      {
+        "path": "keras/layers/normalization.py",
+        "git_blob_sha": "c6d23b287146656b36fa7419d2e737ee427c6621",
+        "url": "https://github.com/keras-team/keras/blob/1.2.2/keras/layers/normalization.py"
+      },
+      {
+        "path": "keras/layers/convolutional.py",
+        "git_blob_sha": "c9f907a5a5858fe66d3406a2109bac7e101a64a4",
+        "url": "https://github.com/keras-team/keras/blob/1.2.2/keras/layers/convolutional.py"
+      }
+    ],
+    "historical_api_limitation": "Keras 1.2.2 interprets the released Keras 1.x API; it does not establish the authors' exact installed version.",
+    "findings": [
+      "Keras script uses Adam, SB batch 256, LB batch 5000, 20 epochs and 25 path points.",
+      "Keras script restores the same initial weights and recompiles to reset optimizer accumulators between SB and LB.",
+      "Shallow convolutions omit subsample; historical Convolution2D defaults to (1, 1), unlike stride 2 in paper Appendix B.3.",
+      "Deep network adds convolutional dropout 0.3/0.4 and dropout before the dense layer.",
+      "BN mode 2 uses input-batch statistics in training and testing; the path script evaluates in batches of 5000.",
+      "Keras example covers C1-C4 without F1; the PyTorch folder supplies a preliminary VGG11-based example."
+    ]
+  },
+  "changes_to_experiments_after_inspection": false,
+  "publication_note": "This repository export occurs after inspection and does not establish the original access chronology.",
+  "workflow_note": "The executed notebook and six runs preceded the later shared chat. The chat's proposed notebook was never executed; the workflow does not meet the assignment's chat-interface requirement."
+}

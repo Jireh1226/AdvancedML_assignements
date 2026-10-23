@@ -237,3 +237,195 @@ Synchronized the local Paper 1 README with the repository's PDF-only version by 
 No notebook, checkpoint, original plot, diagnostic measurement, or other paper report was changed. The first public export was created after author-source inspection; tagging that export would not make it the original pre-inspection Phase 3 commit. The original mixed-paper commit remains separately identified in the provenance record. A visibility change would restrict future access, not undo earlier publication.
 
 On 22 October 2026, the repository was changed to private at the user's request and GitHub's API confirmed private visibility. This limits further public access; the earlier-publication disclosure is retained.
+
+
+## Paper 2: On Large-Batch Training for Deep Learning
+
+### Paper-specified settings
+
+- F1: MNIST, five 512-unit batch-normalized ReLU hidden layers and ten outputs.
+- C1: CIFAR-10, two 64-filter 5x5 stride-2 convolution/max-pool stages, dense 384/192, batch normalization and 0.5 retention dropout in hidden dense layers.
+- C2: CIFAR-10, VGG-style convolution groups 64x2, 128x2, 256x3, 512x3, 512x3, pooling between groups, a 512-unit hidden dense layer and ten outputs. The Appendix B.4 reference to C3 is interpreted as a naming typo within the C2/C4 section.
+- Adam; small batch 256; large batch 10% of the training set: 6,000 for MNIST and 5,000 for CIFAR-10.
+- Mean cross entropy and accuracy along theta(alpha) = (1-alpha)*theta_SB + alpha*theta_LB, alpha in [-1, 2]. Alpha 0 is SB and alpha 1 is LB.
+
+### Explicit implementation choices
+
+- One prespecified seed, 42, and matched initial weights for each SB/LB pair. The paper reports five trials and selects a pair for Figure 3; this reproduction does not estimate between-seed variability or search seeds for an attractive plot.
+- Decode pixels to float32 in [0,1]; retain MNIST 28x28 and CIFAR-10 32x32. No centering, per-image standardization, augmentation, or weight decay.
+- Xavier-uniform weights, zero biases, BN affine scale one/shift zero, epsilon 1e-5 and momentum 0.1. BN is applied to hidden layers, not output logits. C1 convolution/pooling padding and pooling strides require an explicit choice because the paper does not fully specify them.
+- Adam learning rate 0.001, betas (0.9, 0.999), epsilon 1e-8, no learning-rate schedule. Evaluate every five epochs; stop after at least 100 epochs when full-training cross entropy has not improved by 0.0001 for 30 epochs, provided training accuracy is at least 99% and cross entropy is below 0.1. A 300-epoch safety cap is an explicit departure from the paper's unbounded convergence budget; capped runs must not be called converged automatically.
+- C1 uses convolution padding 2 and 3x3 max pooling with stride 2/padding 1; these unspecified padding choices yield a final 64x2x2 feature map. No change is made simply to match published accuracy.
+- The interpolation grid contains 61 evenly spaced alpha values, including exact alpha 0 and 1. BN recalibration uses the whole training split in fixed 512-example batches, with batch-size-weighted running-statistic updates. This is an explicitly chosen calibration convention, not a claim about the authors' unreported handling.
+- Interpolate trainable parameters, not negative/extrapolated running variances. Recompute BN statistics from training data only at each interpolation point; disable dropout for loss/accuracy evaluation.
+
+## Completed large-batch results
+
+All six models completed their specified training-only plateau rule: F1 SB/LB at 100/100 epochs, C1 at 165/300, and C2 at 165/180. C1 LB met the plateau rule on the final allowed epoch; it is not an experiment with an unbounded budget. Full training and test splits were evaluated at all 61 interpolation points for each network. The executed notebook passes nbformat validation, matches the validated code, and contains no error outputs or intermediate training logs.
+
+Figure 3 endpoint values below use the same train-only BN recalibration as the plotted curves. They therefore differ slightly from the raw running-BN metrics saved at the end of training.
+
+| Network | SB test accuracy | LB test accuracy | SB minus LB |
+| --- | ---: | ---: | ---: |
+| F1 | 98.61% | 98.20% | 0.41 percentage points |
+| C1 | 71.00% | 66.78% | 4.22 percentage points |
+| C2 | 86.07% | 81.33% | 4.74 percentage points |
+
+The completed curves were visually compared with the supplied Figure 3. They show the intended qualitative pattern: a broad low-training-loss region around the small-batch endpoint and greater sensitivity around/beyond the large-batch endpoint. All three SB endpoints have better test accuracy than their LB counterpart. This is not an exact numerical reproduction: the paper's Table 2 averages over five trials and reports F1 98.03%/97.81%, C1 80.04%/77.26%, and C2 89.24%/87.26% for SB/LB. In particular, our C1 and C2 accuracies are lower, and extrapolation heights/transition locations differ. One seed, unspecified optimizer/initialization/padding settings, finite stopping, and our explicit BN calibration convention limit comparison. These differences were not hidden or corrected by selecting a favorable seed, test epoch, or plot scale.
+
+## Paper 2 F1 accuracy rebound: controlled BN comparison
+
+The user requested leaving Papers 1 and 3 untouched and investigating the upward red tail in Paper 2. Red represents accuracy, not cross-entropy. Alpha is a weight-path coordinate, not training time: weights are `(1-alpha)*SB + alpha*LB`; alpha beyond 1 extrapolates past the large-batch model. Classification accuracy is not required to decrease monotonically along this path.
+
+Used the two existing F1 checkpoints without retraining. Kept all trainable parameters identical at each of the 61 alpha values, changing only the batch-normalization running statistics. Evaluated all 60,000 training and 10,000 test examples. The original training-data recalibration reproduced all 61 saved train/test points exactly.
+
+| BN treatment | Test accuracy at alpha 1.3 | Test accuracy at alpha 2 | Interpretation |
+| --- | ---: | ---: | --- |
+| Recalibration from training images, current notebook | 2.20% | 27.91% | Reproduces the observed rebound |
+| Fixed small-batch endpoint statistics | 10.10% | 11.12% | Largely collapses to predicting digit 3; not a faithful replacement |
+| Fixed large-batch endpoint statistics | 3.26% | 18.04% | Rebound remains without recalibration |
+| Affine interpolation/extrapolation of stored means and variances | Invalid | Invalid | Negative variances; no accuracy assigned |
+
+Thus BN handling materially changes the curve but recalibration alone does not explain the rebound. With fixed LB statistics, accuracy still recovers while test cross-entropy rises from 66.83 at alpha 1.3 to 56,913.09 at alpha 2: improved accuracy need not mean improved probabilistic predictions, because confidently wrong examples can dominate cross-entropy. This control does not reproduce the paper either.
+
+The classwise predictions confirm a real change, not a plotting error. Under the current recalibration protocol, at alpha 2 the test accuracies for digits 0, 3, 4, and 9 are approximately 69.8%, 81.4%, 55.8%, and 56.0%, respectively; several other digits remain almost entirely wrong. That partial recovery produces the aggregate upward red tail. The network is still a poor classifier, not a recovered high-accuracy endpoint.
+
+The proposed direct BN-buffer interpolation cannot cover the full displayed range for these checkpoints: every sampled alpha from 1.05 through 2 contains negative running variances; at alpha 1.3 all 2,560 BN variance entries are negative. These points were rejected, not clamped, silently converted into standard deviations, or plotted as finite results. Fixed-SB and fixed-LB statistics are diagnostic controls only: each preserves its own full endpoint model but substitutes the wrong BN buffers at the opposite endpoint, so neither is automatically a valid replacement for the complete two-endpoint curve.
+
+No primary notebook, checkpoint, or submitted figure was changed. In particular, Papers 1 and 3 remain byte-identical. All three notebook hashes, the protected figures, and all eight classifier/VAE checkpoint hashes passed before/after checks. The exact reason our extrapolated F1 behavior differs from the authors' selected pair remains unresolved; the experiment does not establish that initialization, stopping, or BN convention alone is responsible. No visual-match-driven replacement was selected.
+
+The evaluation loop took about 20 seconds on GPU 0, excluding environment/data setup and file transfer. Diagnostic artifacts are in `results_large_batch/audit_f1_bn/`: `curves.json`, `audit_metadata.json`, `bn_comparison.png`, and `diagnostic.py`. These are separate from the submitted Figure 3 results.
+
+## Paper 2 report: chat review, completed evidence, and Phase 4 comparison
+
+The user requested a complete Paper 2 report using Paper 1's structure. The revision combines the mathematical summary, phase-specific reproduction account, original/reproduced Figure 3 panels, numerical comparisons, diagnostic evidence, an independent critical assessment, and comparison with public reviews. Author and course details follow Paper 1. No experiments were started, no training code was changed, and nothing was published.
+
+### Shared chat and assumptions
+
+- Shared conversation: https://chatgpt.com/share/6adab3d8-c2fc-83ea-8a39-08fb4b3fff4c. The fetched page's conversation default and assistant-message metadata identify `gpt-6-astra-wm` (Astra). The public chat was checked directly; it was not inferred from Paper 1's model.
+- Compared the 34-cell chat proposal and the user's pasted design-choice response with the actual executed notebook. The shared conversation records the initial understanding check, request for paper-only code with assumptions explained, complaint about excessive instructions, subsequent design questions, and acknowledgment that no full runs were performed there.
+- The completed six seed-42 runs predate this chat proposal. The report explicitly separates them. It does not imply the proposed five-seed, asymmetric-padding, geometric-BN-variance implementation produced the saved outputs.
+- The chat's log-space variance interpolation is motivated by positivity, exact endpoint buffers, and convenience, but has not been evaluated on the existing checkpoints. It is distinct from the earlier affine-variance diagnostic that produced negative extrapolated variances. No new geometric-interpolation experiment is claimed.
+- Five trials follow the paper; the existing single-seed study is a reduced reproduction. Other differences include the plateau rule, dropping incomplete batches, FP64 evaluation, grid density, out-of-scope sharpness searches, and a literal implementation hash without runtime validation. These are described as assumptions or weaknesses, not automatically labelled scientific bugs.
+- Proposed removals and provenance fixes remain proposals for the unexecuted chat notebook. The executed notebook already excludes the extra sharpness suite. Retaining an old result is not evidence that every old convention is uniquely correct.
+
+### Verified local evidence
+
+- All six summaries, training histories, paired initial-state hashes, interpolation measurements, and the prior BN diagnostic were checked. Reported endpoints remain F1 98.61/98.20%, C1 71.00/66.78%, and C2 86.07/81.33% after recalibration. Raw running-BN endpoint values are listed separately.
+- C1 SB raw test accuracy peaked at 71.67% at epoch 30 and ended at 69.56%; C1 LB peaked at 68.33% at epoch 30 and ended at 65.67%. These observations do not prove stopping explains the mismatch. No checkpoint was selected by test accuracy.
+- All six runs meet their recorded operational plateau-and-fitting rule. C1 LB also reaches the 300-epoch cap, and both facts are reported. The rule is not an assertion of mathematical convergence.
+- The calibration description now explicitly states that batch-weighted running-statistic updates with all BN layers active are not exact layerwise population moments or pooled activation variance. Dropout stays off and only training images calibrate the statistics.
+- The prior nine-point calibration-batch comparison and 61-point F1 control are reused as existing evidence, not presented as new experiments. The fixed-LB rebound and invalid affine extrapolation remain visible; their cause is not overclaimed.
+- `report_assets/render_panels.py` renders all 61 stored points into three report-only PDF panels with readable labels. `panel_sources.json` identifies the exact source JSON hashes. No points are changed, selected away, fitted, smoothed, or newly evaluated. The original combined Figure 3 files remain unchanged.
+
+### Saved snapshot and released implementation
+
+Before source access, the executed Paper 2 notebook was verified byte-identical to `Assignment_2/paper_2_large_batch/on_large_batch_training_for_deep_learning.ipynb` in local commit `8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533`, saved at 2026-10-22T19:37:27-05:00 and retained as `refs/local/assignment2-phase3`. Notebook SHA-256: `fb8ce76ef7d4de783eb223b8506a5a8edb110f989bcae3db2488e9fba5e8b7c9` (corrected during the later submission audit; the earlier entry mistakenly reused the older BN-audit hash). The preserved mixed-paper commit was not pushed. No new commit was made for this report task.
+
+Static inspection used https://github.com/keskarnitish/large-batch-training/tree/8819876245c0ce390eab1c0de1ba3be787e15058 on 22 October 2026, after the saved snapshot. Files read: `README.md`, `network_zoo.py`, `plot_parametric_plot.py`, `PyTorch/README.md`, `PyTorch/plot_parametric_pytorch.py`, and `PyTorch/vgg.py`.
+
+- The Keras example covers C1--C4, not F1. It agrees on [0,1] scaling, Adam, SB256/LB5000, and restoring the same initial weights while resetting the optimizer. It uses a fixed 20 epochs and 25 interpolation points, rather than the paper's unbounded loss-based stopping.
+- The released shallow convolutions omit `subsample`, whose historical Keras default is (1,1). This differs from Appendix B.3's stride two and the reproduction's stride two; the resulting dense input sizes differ. The released settings are not silently substituted for the paper.
+- Released C2 adds convolutional dropout at 0.3 and 0.4 and dropout before its dense layer. These are absent from the paper-based reconstruction. Their effect on the reproduction's accuracy has not been isolated.
+- `BatchNormalization(mode=2)` in the released Keras model uses each input batch's statistics in training and testing. Its plotting script evaluates in batches of 5,000, including test batches. This differs from the reproduction's train-only recalibration/frozen evaluation. The distinction is supported by the official historical Keras 1.2.2 `keras/layers/normalization.py` source; `keras/layers/convolutional.py` confirms the stride default. That release is a reference for interpreting the API, not a verified version of the authors' environment.
+- The PyTorch README describes a preliminary VGG11-based example, not an exact F1/C1/C2 implementation. Its defaults are not used as recovered paper settings.
+- No released code was executed or copied into the notebook. No training/evaluation setting, checkpoint, or original curve was changed because of this comparison. The effect of these discrepancies remains unmeasured.
+
+### Critical review and external discussion
+
+The independent assessment was written before opening the review archive. It concerns empirical strength, causal controls for batch size versus update budgets and BN, one-dimensional geometry, parameterisation dependence, missing implementation details, and the scope of the overfitting explanation. The report presents the assessment before its comparison and does not include process-defence prose.
+
+The original OpenReview page required browser verification and its API could not be fetched through the browser tool. The discussion was read from the archived primary records at https://github.com/xcfcode/openreview_spider/blob/b232dbcbbee6a7a39415c2ea046058e9dcd82e1e/res/H1oyRlYgg.json. Official reviews `S1Eq3CUEl`, `SJVFyZfNe`, and `HkYQOlGEl` are distinguished from public comments. The comparison notes agreement on empirical value, the authors' lack of a second-order optimality guarantee, withdrawal of loss-scale-invariance wording, and unsuccessful reported noise-injection trials. Loss-unit scaling and network reparameterisation are explicitly distinguished. The review comparison does not claim that these two objections are identical.
+
+Only the local Paper 2 report, its report-rendering assets, and this history are updated. The report retains a concise two-page summary and discloses that IDE-generated/executed results do not fully satisfy the chat-interface requirement. Report PDF and LaTeX remain local; this task does not authorize publication of Paper 2 or the upload of LaTeX sources.
+
+The final save follows the user's PDF-only scope: the adjacent pre-existing LaTeX source is left unchanged, and does not contain this report revision. The revised build source is retained only in the temporary report-build directory. Auto-review declined overwriting the assignment-folder LaTeX source; the save was narrowed to the PDF, its report-only rendering assets, and this history. No bypass was attempted. Six endpoint values, epoch counts, paired initialisation hashes, operational stopping conditions, and source-measurement hashes were checked. The final ten-page PDF compiled without layout/reference warnings; its first two pages contain the summary. The title page and comparison figure were inspected visually, and all protected original notebook/result hashes remain unchanged.
+
+## Paper 2 prose review and PDF refresh
+
+The user requested another writing review, particularly the sentence about the stopping numbers remaining practical assumptions. That sentence was removed because the settings table already distinguishes the paper's specifications from implementation choices. The actual stopping thresholds and their limits remain in Phase 3.
+
+Reviewed sentence connections and paragraph focus using Harvard's [Transitions](https://writingcenter.fas.harvard.edu/transitions) and [Anatomy of a Body Paragraph](https://writingcenter.fas.harvard.edu/clone-anatomy-body-paragraph). Used [Wikipedia's Signs of AI Writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) as an editorial checklist, not an authorship detector. Reduced repeated qualifications, generic concluding statements and unnecessary procedural assurances. Phase 2 now focuses more directly on the generated notebook's scope, BN proposal, padding, stopping rules and unchecked implementation hash. The diagnostics distinguish observed effects from unresolved causes without repeatedly restating that distinction. The critique and review comparison have clearer links between claims and evidence.
+
+The revised text retains the unexecuted-chat versus executed-notebook distinction, the chat-interface disclosure, the single-seed limitation, the untested geometric interpolation, and the timing and scope of author-code access. Equations, table data, figure inclusions, bibliography and unique numerical values were checked against the previous source and are unchanged. No collective pronouns or manual bold emphasis were added.
+
+Compiled twice and checked the resulting PDF's text and rendered Phase 2, figure-comparison and critical-review pages. The report remains ten pages, with the summary confined to its first two pages; the final build has no layout or unresolved-reference warnings. All 45 protected files, including the executed notebook, saved results, checkpoints, report assets, adjacent earlier LaTeX source, Paper 1 PDF and Paper 3 notebook, remain unchanged. The Paper 2 notebook still matches the saved Phase 3 commit. No training, checkpoint evaluation, code changes, commits or publication occurred.
+
+Only the assignment-folder Paper 2 PDF and this history are saved. The latest build source is `/private/tmp/paper2-style-review/on_large_batch_training_for_deep_learning.tex`; the adjacent assignment-folder LaTeX remains the earlier draft under the existing PDF-only save scope.
+
+## Paper 2 review: lecture connections and Adam momentum
+
+Added two lecture-grounded points to the critical review at the user's request. Lecture 4, pages 19–27, supplies the Lipschitz-gradient condition; Lecture 6.1, pages 9–11, connects the Hessian to directional curvature. The report explains that a gradient-Lipschitz bound limits the Hessian's operator norm where the loss is twice differentiable. A one-dimensional path cannot determine that bound over a neighbourhood. The discussion is conditional on smooth regions of the ReLU loss and makes no claim that smoothness alone establishes generalisation or that a Lipschitz constant was measured.
+
+Lecture 6.1, pages 5–7 and 23–24, supports the distinction between momentum and Adam's adaptive scaling. Momentum can maintain movement through a small-gradient region without guaranteeing escape from a sharp minimum. The zero-gradient, zero-first-moment example follows directly from Adam's update. The algorithm was also checked against Kingma and Ba's original [Adam paper](https://arxiv.org/pdf/1412.6980), Algorithm 1. The supplied Keskar paper confirms that both batch regimes already use Adam and reports similar large-batch findings with other optimisers. The review therefore proposes a controlled momentum-coefficient comparison, not adding an allegedly missing momentum mechanism. That comparison is a proposed experiment and was not run.
+
+Updated the lecture bibliography entry with the relevant pages. The summary and reproduction sections, tables and figures are unchanged. Recompiled twice, checked the PDF text and rendered review page, and verified that the report remains ten pages with a two-page summary and no build warnings. All 45 protected files remain unchanged. Only the report PDF and this change log are saved; there are no new numerical experiments, notebook edits, commits or uploads. The current build source is `/private/tmp/paper2-lecture-review/on_large_batch_training_for_deep_learning.tex`; the adjacent earlier LaTeX source remains unchanged under the PDF-only save scope.
+
+## Paper 2 review: initialisation sensitivity
+
+Added the requested initialisation discussion to Section 3.1. It acknowledges the paper's five random starting points, its brief statement about other initialisation strategies, and Figure 5's improvements when large-batch training starts from later small-batch checkpoints. It distinguishes the lower mean large-batch accuracy across Table 2's six networks from an unsupported claim that every individual trial was worse. The proposed extension compares named initialisation schemes across paired seeds, separating random-start sensitivity from the benefit of preliminary small-batch training. Removed the earlier short warm-start sentence to avoid repeating the same point.
+
+Only the opening of the critical assessment changes; the summary, reproduction and remaining review are unchanged. The rebuilt PDF remains ten pages with a two-page summary and no build warnings. Checked its extracted text and the rendered opening review page. No experiments, notebook edits or publication were performed. The current build source is `/private/tmp/paper2-initialisation-review/on_large_batch_training_for_deep_learning.tex`; only the assignment PDF and this history are saved.
+
+## Papers 1 and 2: author-repository findings linked to results and review
+
+The user requested clearer discussion of the authors' released repositories and what those implementations suggest for the reproduction. Both reports already contained Phase 4 comparisons. This revision rechecked the same pinned sources and integrated their implications into the results and critical assessments. This is a further inspection, not a new claim that author-code access first occurred now. Existing chronology and chat-interface disclosures remain intact.
+
+### Rechecked sources
+
+- Paper 1: [pluskid/fitting-random-labels](https://github.com/pluskid/fitting-random-labels/tree/972e71c94442fc99baeb5baebee8c95e5767963b), commit `972e71c94442fc99baeb5baebee8c95e5767963b`. Read `README.md`, `cifar10_data.py`, `cmd_args.py`, `model_mlp.py` and `train.py`.
+- Paper 2: [keskarnitish/large-batch-training](https://github.com/keskarnitish/large-batch-training/tree/8819876245c0ce390eab1c0de1ba3be787e15058), commit `8819876245c0ce390eab1c0de1ba3be787e15058`. Read `README.md`, `plot_parametric_plot.py`, `network_zoo.py` and `PyTorch/README.md`.
+- Historical API checks: official Keras tag `1.2.2`, `keras/layers/normalization.py` and the `Convolution2D` constructor in `keras/layers/convolutional.py`. This interprets the released API; it does not establish the authors' exact installed version.
+- Browser requests for the pinned repository pages failed; the GitHub connector successfully returned the files at the pinned refs. No repository code was executed or copied into either reproduction notebook.
+
+### Report changes
+
+Paper 1 now explains that the author repository is an independently written demonstration, whose README explicitly excludes exact reproduction of the original Inception/AlexNet experiments. Its printed random-label MLP example still reports 99.97% training accuracy after 300 epochs. The report treats this as a separate example of near-complete fitting, not evidence explaining the saved timing ratios. The Phase 4 section explains why copying the demo's corrupted validation targets would change the meaning of panel (c). It proposes a controlled Gaussian-versus-uniform initialisation comparison at matched variance, keeping other settings fixed across seeds. The critical review identifies original run configurations and histories as the evidence needed to resolve the timing definition. The demo's stated purpose and recommendations are distinguished from inferred experimental motivations.
+
+Paper 2 now links the result mismatches to the specific BN, C1-stride and C2-dropout differences already established from source. It explicitly notes that the repository has no F1 implementation from which to recover that panel's evaluation convention. The proposed first control keeps C1/C2 checkpoint weights fixed and evaluates using input-batch BN statistics, 5,000-image batches and dropout disabled, with historical normalisation details checked. Architecture and training-dropout changes require separate paired training runs. The review explains that evaluation-time batch statistics make predictions and path measurements depend on the evaluation batch's composition. These are documented discrepancies and proposed tests, not demonstrated causes or completed corrections.
+
+### Validation and scope
+
+Both final PDFs were compiled twice, their extracted text was checked, and the Phase 4 pages and Paper 2 reference page were inspected visually. Both remain ten pages, with their original two-page summaries. Equations, table data, measured figures and bibliography entries are unchanged; Paper 2 references use a compact 10-point font to avoid a nearly empty final page. Removed a duplicated no-new-training sentence in Paper 1 to avoid an isolated line on its own page. There are no layout or unresolved-reference warnings. All 253 protected source, notebook, figure, history and measurement files remain unchanged. No training, checkpoint evaluation, commit, push or repository-visibility change occurred.
+
+Only the two assignment-folder report PDFs and this history are saved. The adjacent LaTeX sources are left unchanged under the PDF-only save scope. Current build sources are `/private/tmp/papers12-repository-review/paper1/understanding_deep_learning_requires_rethinking_generalization.tex` and `/private/tmp/papers12-repository-review/paper2/on_large_batch_training_for_deep_learning.tex`.
+
+PDF SHA-256 values: Paper 1 `30ebb9b963d0fc8fa0e17967e3a4eb0d16a9a893c1a5f9bda016fcc9a9068459`; Paper 2 `3e6684063da30c1e2d82f8819d4e88b4b32aa209aaedafbcffb652266e87170a`.
+
+## Paper 2: saved checkpoint and calibration audit
+
+- Checked the supplied Appendix B against the layers, actual SB/LB batch sizes, Adam objective, dropout/BN treatment, and matched initializations. Padding, initialization, stopping, and BN calibration remain disclosed choices where the paper is incomplete; this does not establish that these choices match the authors'.
+- Reloaded all six checkpoints and recomputed interpolation at alpha = 0, 1, and 1.2 for all three architectures. All saved training/test losses and accuracies matched exactly. At alpha 0 and 1, trainable parameters exactly matched the endpoint checkpoint tensors. All six runs met the recorded training-only plateau rule.
+- Recalibrating BN with training batches of 256 rather than 512 changed test accuracy by at most 0.02 percentage points and cross-entropy by at most 0.00959 across those nine points. This specific choice cannot explain C1's large accuracy gap; the test does not exclude every possible BN convention.
+- Numeric curve shapes, extrapolation losses, and CIFAR test accuracies differ from the paper. Our SB/LB accuracies are F1 98.61%/98.20%, C1 71.00%/66.78%, and C2 86.07%/81.33%; the paper reports five-trial table averages of 98.03%/97.81%, 80.04%/77.26%, and 89.24%/87.26%, respectively. Broad SB behavior and greater sensitivity near/beyond LB are qualitatively present, not exact matches.
+- The cause of the remaining performance gaps is unresolved. A single seed and unreported implementation/training choices are limitations, not proven causes. No checkpoint or plotted value was changed merely to hide the mismatch.
+
+## Papers 1 and 2: submission audit and repository update
+
+The user authorised pushing the missing submission files and addressing the verifiable audit findings. Paper 2 now has a README, executed notebook, report PDF, original paper, saved measurements, report panels, diagnostic and Phase 4 record in the repository export. The assignment index links both reports and run instructions. Paper 1's latest report PDF includes the previously completed author-repository discussion. Datasets, checkpoints and LaTeX sources are excluded.
+
+### Report corrections
+
+- State the actual chronology: the six Codex/IDE-assisted runs preceded the later shared chat on 22 October. The chat proposed a different notebook that was never executed. This does not meet the chat-interface requirement; changing the report cannot retroactively repair that workflow.
+- Add the paper's sharpness equation with its search matrix, perturbation box and pseudoinverse. The simpler equation suggested by the audit omitted the subspace matrix, so the supplied paper's equations (3)--(4) were checked directly.
+- Shorten repeated seed, stopping and workflow qualifications while preserving settings and limitations. The summary remains two pages.
+- Identify the Appendix B.4 C3/C2 naming error using the section heading, Table 1 and B.3. The review still distinguishes implementation uncertainty from measured results.
+- Correct the audit's suggested OpenReview comparison: Reviewer 3 explicitly questioned minima along one-dimensional slices in note `ByV60KkQg`. The report acknowledges this overlap rather than claiming that no reviewer raised it.
+- Do not adopt the claim that fewer processors than batch examples is inherently inconsistent with ideal parallel efficiency. That public comment questions a modelling assumption; it does not establish the claimed contradiction. The later Figure 5 epsilon comment is not needed to support the independently checked B.4 error.
+
+### Source and notebook provenance
+
+The executed Paper 2 notebook is byte-identical to the original local snapshot `8b28d5b4c9f86b092aead6e1bec1ee5a5a43e533`. Its actual SHA-256 is `fb8ce76ef7d4de783eb223b8506a5a8edb110f989bcae3db2488e9fba5e8b7c9`. The older `68a06d56...` value was incorrectly reused in the Phase 3 history entry and is corrected there. Historical BN-audit metadata remains unchanged; its hashes describe an earlier audit, not the later snapshot.
+
+`phase4_record.json` lists the six author files at commit `8819876245c0ce390eab1c0de1ba3be787e15058`, the two historical Keras 1.2.2 files, their Git blob identities and source URLs. A new static recheck began at `2026-10-23T02:05:27Z`; it confirms the stride, dropout, BN, 20-epoch and 25-point findings. No author code was executed. The exact initial inspection timestamp could not be recovered and is explicitly null. The historical change log records inspection after the snapshot, but the new recheck timestamp is not presented as proof of the initial access time.
+
+The mixed-paper local Phase 3 commit is not exported or relabelled as a public pre-inspection commit. The repository remains private until the submission-day visibility change; this does not undo its earlier public period. New measurements, retraining and changes to the executed notebooks are outside this update.
+
+
+### Validation of the submitted artifacts
+
+The Paper 2 PDF was rebuilt twice and inspected, including its equation, comparison figure, Phase 4 text and references. An initial eleven-page build was reduced to ten pages by shortening repeated prose; the summary remains two pages. No layout or unresolved-reference warnings remain. The original panels remain vector crops for zooming, and the README links full-size original and reproduced figures.
+
+The executed notebook passed schema and syntax validation, has six executed code cells and no saved errors, and matches the original Phase 3 snapshot byte-for-byte. Checked all 183 interpolation rows, six endpoint measurements and epoch counts, report-panel input hashes, README relative links and the excluded-file list. Regenerating the three report panels from the exported JSON passed without datasets or checkpoints. All 321 protected original files remain unchanged. A pronoun check initially matched hidden text from the cropped original paper; checking the authored report source avoided attributing the paper's prose to this report.
+
+Final report SHA-256 values: Paper 1 `30ebb9b963d0fc8fa0e17967e3a4eb0d16a9a893c1a5f9bda016fcc9a9068459`; Paper 2 `5fea3ef08e3e8871286b73ad2a64a5da3483ce07582ab58d42111e07a48a6c96`. The adjacent earlier LaTeX sources are unchanged under the PDF-only save scope.
